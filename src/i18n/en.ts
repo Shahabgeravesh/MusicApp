@@ -1,7 +1,23 @@
 export default {
   home: {
     title: 'Welcome to Music Theory App!',
-    subtitle: 'Learn the basics of music theory, scales, and rhythm.'
+    subtitle: 'Learn the basics of music theory, scales, and rhythm.',
+    quickActions: 'Quick Actions',
+    continueLearning: 'Continue Learning',
+    dailyPractice: 'Daily Practice',
+    quickQuiz: 'Quick Quiz',
+    yourProgress: 'Your Progress',
+    overallProgress: 'Overall Progress',
+    dayStreak: 'Day Streak',
+    totalPractice: 'Total Practice',
+    featuredLessons: 'Featured Lessons',
+    recentActivity: 'Recent Activity',
+    achievements: 'Achievements',
+    weeklyChallenge: "This Week's Challenge",
+    completePracticeSessions: 'Complete 5 Practice Sessions',
+    ofCompleted: 'of {{total}} completed',
+    motivationalQuote: '"Music is the universal language of mankind."',
+    quoteAuthor: '- Henry Wadsworth Longfellow'
   },
   lessons: {
     0: {

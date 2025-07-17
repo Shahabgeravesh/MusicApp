@@ -1,7 +1,23 @@
 export default {
   home: {
     title: 'به برنامه آموزش تئوری موسیقی خوش آمدید!',
-    subtitle: 'مبانی تئوری موسیقی، گام‌ها و ریتم را بیاموزید.'
+    subtitle: 'مبانی تئوری موسیقی، گام‌ها و ریتم را بیاموزید.',
+    quickActions: 'عملیات سریع',
+    continueLearning: 'ادامه یادگیری',
+    dailyPractice: 'تمرین روزانه',
+    quickQuiz: 'آزمون سریع',
+    yourProgress: 'پیشرفت شما',
+    overallProgress: 'پیشرفت کلی',
+    dayStreak: 'روز متوالی',
+    totalPractice: 'کل تمرین',
+    featuredLessons: 'درس‌های ویژه',
+    recentActivity: 'فعالیت اخیر',
+    achievements: 'دستاوردها',
+    weeklyChallenge: 'چالش هفته',
+    completePracticeSessions: 'تکمیل ۵ جلسه تمرین',
+    ofCompleted: 'از {{total}} تکمیل شده',
+    motivationalQuote: '"موسیقی زبان جهانی بشریت است."',
+    quoteAuthor: '- هنری وادزورث لانگفلو'
   },
   lessons: {
     0: {
