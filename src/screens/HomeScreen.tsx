@@ -7,10 +7,12 @@ import {
   TouchableOpacity, 
   Dimensions,
   Alert,
-  Animated
+  Animated,
+  ActivityIndicator
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import i18n from '../i18n';
+import { useAppData } from '../hooks/useAppData';
 
 const { width } = Dimensions.get('window');
 
@@ -33,22 +35,32 @@ interface FeaturedLesson {
 }
 
 const HomeScreen: React.FC = () => {
-  const [currentStreak, setCurrentStreak] = useState(7);
-  const [totalPracticeTime, setTotalPracticeTime] = useState(1240); // minutes
-  const [lastLesson, setLastLesson] = useState(3);
   const [fadeAnim] = useState(new Animated.Value(0));
-
-  // Mock data - in real app this would come from storage/API
-  const totalLessons = 14;
-  const completedLessons = 3;
-  const progress = (completedLessons / totalLessons) * 100;
+  const {
+    userProgress,
+    completedLessons,
+    practiceSessions,
+    achievements,
+    learningStreak,
+    weeklyChallenge,
+    totalPracticeTime,
+    settings,
+    loading,
+    progressPercentage,
+    recentLessons,
+    thisWeekSessions,
+    unlockedAchievements,
+    completeLesson,
+    addPracticeSession,
+    addQuizResult,
+  } = useAppData();
   
   const getBadge = () => {
-    if (progress >= 100) return { emoji: '🎓', title: 'Master', color: '#FFD700' };
-    if (progress >= 80) return { emoji: '🌟', title: 'Expert', color: '#FF6B6B' };
-    if (progress >= 60) return { emoji: '⭐', title: 'Advanced', color: '#4ECDC4' };
-    if (progress >= 40) return { emoji: '📚', title: 'Intermediate', color: '#45B7D1' };
-    if (progress >= 20) return { emoji: '🎵', title: 'Beginner', color: '#96CEB4' };
+    if (progressPercentage >= 100) return { emoji: '🎓', title: 'Master', color: '#FFD700' };
+    if (progressPercentage >= 80) return { emoji: '🌟', title: 'Expert', color: '#FF6B6B' };
+    if (progressPercentage >= 60) return { emoji: '⭐', title: 'Advanced', color: '#4ECDC4' };
+    if (progressPercentage >= 40) return { emoji: '📚', title: 'Intermediate', color: '#45B7D1' };
+    if (progressPercentage >= 20) return { emoji: '🎵', title: 'Beginner', color: '#96CEB4' };
     return { emoji: '🎼', title: 'New', color: '#FFEAA7' };
   };
 
@@ -56,7 +68,7 @@ const HomeScreen: React.FC = () => {
     {
       id: 'continue',
       title: i18n.t('home.continueLearning'),
-      subtitle: `Lesson ${lastLesson + 1}: ${i18n.t(`lessons.${lastLesson + 1}.title`)}`,
+      subtitle: userProgress ? `Lesson ${userProgress.currentLesson + 1}: ${i18n.t(`lessons.${userProgress.currentLesson + 1}.title`)}` : 'Start your journey',
       icon: '▶️',
       color: '#6200ee',
       onPress: () => Alert.alert('Continue', 'Navigate to next lesson')
@@ -67,7 +79,12 @@ const HomeScreen: React.FC = () => {
       subtitle: '5 min rhythm exercise',
       icon: '⏰',
       color: '#03dac6',
-      onPress: () => Alert.alert('Daily Practice', 'Start daily practice session')
+      onPress: async () => {
+        const success = await addPracticeSession('rhythm', 5, 10, 8, 80);
+        if (success) {
+          Alert.alert('Practice Complete', 'Great job! Your practice session has been recorded.');
+        }
+      }
     },
     {
       id: 'quiz',
@@ -75,7 +92,12 @@ const HomeScreen: React.FC = () => {
       subtitle: 'Test your knowledge',
       icon: '📝',
       color: '#ff6b6b',
-      onPress: () => Alert.alert('Quiz', 'Start quick quiz')
+      onPress: async () => {
+        const success = await addQuizResult('quick_quiz', 85, 10, 8, 300);
+        if (success) {
+          Alert.alert('Quiz Complete', 'Your quiz results have been saved!');
+        }
+      }
     }
   ];
 
@@ -86,7 +108,7 @@ const HomeScreen: React.FC = () => {
       description: 'Learn to read musical notes',
       difficulty: 'Beginner',
       duration: '10 min',
-      completed: false
+      completed: completedLessons.some(lesson => lesson.lessonId === 4)
     },
     {
       id: 7,
@@ -94,7 +116,7 @@ const HomeScreen: React.FC = () => {
       description: 'Master the major scale pattern',
       difficulty: 'Intermediate',
       duration: '15 min',
-      completed: false
+      completed: completedLessons.some(lesson => lesson.lessonId === 7)
     },
     {
       id: 11,
@@ -102,21 +124,8 @@ const HomeScreen: React.FC = () => {
       description: 'Build and play basic chords',
       difficulty: 'Intermediate',
       duration: '20 min',
-      completed: false
+      completed: completedLessons.some(lesson => lesson.lessonId === 11)
     }
-  ];
-
-  const recentLessons = [
-    { id: 3, title: 'Clefs', progress: 100 },
-    { id: 2, title: 'The Staff', progress: 100 },
-    { id: 1, title: 'What is Music?', progress: 100 }
-  ];
-
-  const achievements = [
-    { id: 1, title: 'First Steps', emoji: '🎵', unlocked: true },
-    { id: 2, title: 'Note Reader', emoji: '📖', unlocked: true },
-    { id: 3, title: 'Scale Master', emoji: '🎼', unlocked: false },
-    { id: 4, title: 'Rhythm King', emoji: '🥁', unlocked: false }
   ];
 
   useEffect(() => {
@@ -169,6 +178,15 @@ const HomeScreen: React.FC = () => {
     </View>
   );
 
+  if (loading) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#6200ee" />
+        <Text style={{ marginTop: 16, color: '#666' }}>Loading your progress...</Text>
+      </View>
+    );
+  }
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Animated.View style={{ opacity: fadeAnim }}>
@@ -189,25 +207,27 @@ const HomeScreen: React.FC = () => {
         {/* Progress Overview */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{i18n.t('home.yourProgress')}</Text>
-          <View style={styles.progressCard}>
-            <View style={styles.progressHeader}>
-              <Text style={styles.progressTitle}>{i18n.t('home.overallProgress')}</Text>
-              <Text style={styles.progressPercentage}>{Math.round(progress)}%</Text>
-            </View>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${progress}%` }]} />
-            </View>
-            <Text style={styles.progressText}>{completedLessons} of {totalLessons} lessons completed</Text>
-            
-            <View style={styles.statsRow}>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{currentStreak}</Text>
-                <Text style={styles.statLabel}>{i18n.t('home.dayStreak')}</Text>
+                      <View style={styles.progressCard}>
+              <View style={styles.progressHeader}>
+                <Text style={styles.progressTitle}>{i18n.t('home.overallProgress')}</Text>
+                <Text style={styles.progressPercentage}>{Math.round(progressPercentage)}%</Text>
               </View>
-              <View style={styles.statItem}>
-                <Text style={styles.statNumber}>{formatTime(totalPracticeTime)}</Text>
-                <Text style={styles.statLabel}>{i18n.t('home.totalPractice')}</Text>
+              <View style={styles.progressBar}>
+                <View style={[styles.progressFill, { width: `${progressPercentage}%` }]} />
               </View>
+              <Text style={styles.progressText}>
+                {userProgress?.completedLessons || 0} of {userProgress?.totalLessons || 14} lessons completed
+              </Text>
+              
+              <View style={styles.statsRow}>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>{learningStreak?.currentStreak || 0}</Text>
+                  <Text style={styles.statLabel}>{i18n.t('home.dayStreak')}</Text>
+                </View>
+                <View style={styles.statItem}>
+                  <Text style={styles.statNumber}>{formatTime(totalPracticeTime)}</Text>
+                  <Text style={styles.statLabel}>{i18n.t('home.totalPractice')}</Text>
+                </View>
               <View style={styles.statItem}>
                 <Text style={styles.statNumber}>{getBadge().emoji}</Text>
                 <Text style={styles.statLabel}>{getBadge().title}</Text>
@@ -229,9 +249,9 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>{i18n.t('home.recentActivity')}</Text>
           <View style={styles.recentCard}>
             {recentLessons.map(lesson => (
-              <View key={lesson.id} style={styles.recentItem}>
-                <Text style={styles.recentTitle}>{lesson.title}</Text>
-                <Text style={styles.recentProgress}>{lesson.progress}% complete</Text>
+              <View key={lesson.lessonId} style={styles.recentItem}>
+                <Text style={styles.recentTitle}>{i18n.t(`lessons.${lesson.lessonId}.title`)}</Text>
+                <Text style={styles.recentProgress}>100% complete</Text>
               </View>
             ))}
           </View>
@@ -252,10 +272,15 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>{i18n.t('home.weeklyChallenge')}</Text>
           <View style={styles.challengeCard}>
             <Text style={styles.challengeEmoji}>🎯</Text>
-            <Text style={styles.challengeTitle}>{i18n.t('home.completePracticeSessions')}</Text>
-            <Text style={styles.challengeProgress}>{i18n.t('home.ofCompleted', { total: 5 })}</Text>
+            <Text style={styles.challengeTitle}>{weeklyChallenge?.title || i18n.t('home.completePracticeSessions')}</Text>
+            <Text style={styles.challengeProgress}>
+              {weeklyChallenge ? `${weeklyChallenge.current} of ${weeklyChallenge.target} completed` : '0 of 5 completed'}
+            </Text>
             <View style={styles.challengeBar}>
-              <View style={[styles.challengeFill, { width: '60%' }]} />
+              <View style={[
+                styles.challengeFill, 
+                { width: weeklyChallenge ? `${(weeklyChallenge.current / weeklyChallenge.target) * 100}%` : '0%' }
+              ]} />
             </View>
           </View>
         </View>
