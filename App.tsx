@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { Platform } from 'react-native';
 import i18n from './src/i18n';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -49,10 +50,12 @@ export default function App() {
           screenOptions={({ route }) => ({
             tabBarIcon: ({ focused, color, size }) => {
               let iconName: keyof typeof Ionicons.glyphMap = 'home';
+              
+              // Platform-specific icon selection following iOS and Android guidelines
               if (route.name === 'Home') {
                 iconName = focused ? 'home' : 'home-outline';
               } else if (route.name === 'Lessons') {
-                iconName = focused ? 'book' : 'book-outline';
+                iconName = focused ? 'library' : 'library-outline';
               } else if (route.name === 'Practice') {
                 iconName = focused ? 'musical-notes' : 'musical-notes-outline';
               } else if (route.name === 'Quiz') {
@@ -60,6 +63,7 @@ export default function App() {
               } else if (route.name === 'Settings') {
                 iconName = focused ? 'settings' : 'settings-outline';
               }
+              
               return <Ionicons name={iconName} size={size} color={color} />;
             },
             tabBarActiveTintColor: '#6200ee',

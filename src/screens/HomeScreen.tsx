@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import i18n from '../i18n';
 import { useAppData } from '../hooks/useAppData';
+import AppIcon from '../components/AppIcon';
 
 const { width } = Dimensions.get('window');
 
@@ -21,7 +22,7 @@ interface QuickAction {
   id: string;
   title: string;
   subtitle: string;
-  icon: string;
+  iconName: string;
   color: string;
   onPress: () => void;
 }
@@ -71,7 +72,7 @@ const HomeScreen: React.FC = () => {
       id: 'continue',
       title: i18n.t('home.continueLearning'),
       subtitle: userProgress ? `Lesson ${userProgress.currentLesson + 1}: ${i18n.t(`lessons.${userProgress.currentLesson + 1}.title`)}` : 'Start your journey',
-      icon: '▶️',
+      iconName: 'continue-learning',
       color: '#6200ee',
       onPress: () => {
         if (userProgress && userProgress.currentLesson < 14) {
@@ -87,7 +88,7 @@ const HomeScreen: React.FC = () => {
       id: 'daily',
       title: i18n.t('home.dailyPractice'),
       subtitle: '5 min rhythm exercise',
-      icon: '⏰',
+      iconName: 'daily-practice',
       color: '#03dac6',
       onPress: () => {
         navigation.navigate('Practice' as never);
@@ -98,7 +99,7 @@ const HomeScreen: React.FC = () => {
       id: 'quiz',
       title: i18n.t('home.quickQuiz'),
       subtitle: 'Test your knowledge',
-      icon: '📝',
+      iconName: 'quick-quiz',
       color: '#ff6b6b',
       onPress: () => {
         navigation.navigate('Quiz' as never);
@@ -153,7 +154,7 @@ const HomeScreen: React.FC = () => {
       style={[styles.quickActionCard, { borderLeftColor: action.color }]} 
       onPress={action.onPress}
     >
-      <Text style={styles.actionIcon}>{action.icon}</Text>
+      <AppIcon name={action.iconName} size={24} color={action.color} style={styles.actionIcon} />
       <View style={styles.actionContent}>
         <Text style={styles.actionTitle}>{action.title}</Text>
         <Text style={styles.actionSubtitle}>{action.subtitle}</Text>
@@ -177,15 +178,32 @@ const HomeScreen: React.FC = () => {
       </View>
       <Text style={styles.featuredDescription}>{lesson.description}</Text>
       <View style={styles.featuredFooter}>
-        <Text style={styles.durationText}>⏱️ {lesson.duration}</Text>
-        <Text style={styles.completedText}>{lesson.completed ? '✅ Completed' : '▶️ Start'}</Text>
+        <View style={styles.durationContainer}>
+          <AppIcon name="clock" size={16} color="#666" />
+          <Text style={styles.durationText}>{lesson.duration}</Text>
+        </View>
+        <View style={styles.completedContainer}>
+          <AppIcon 
+            name={lesson.completed ? "checkmark" : "play"} 
+            size={16} 
+            color={lesson.completed ? "#4CAF50" : "#6200ee"} 
+          />
+          <Text style={[styles.completedText, { color: lesson.completed ? "#4CAF50" : "#6200ee" }]}>
+            {lesson.completed ? 'Completed' : 'Start'}
+          </Text>
+        </View>
       </View>
     </TouchableOpacity>
   );
 
   const AchievementCard = ({ achievement }: { achievement: any }) => (
     <View style={[styles.achievementCard, { opacity: achievement.unlocked ? 1 : 0.5 }]}>
-      <Text style={styles.achievementEmoji}>{achievement.emoji}</Text>
+      <AppIcon 
+        name={achievement.unlocked ? "achievement" : "star"} 
+        size={32} 
+        color={achievement.unlocked ? "#FFD700" : "#ccc"} 
+        style={styles.achievementIcon} 
+      />
       <Text style={styles.achievementTitle}>{achievement.title}</Text>
     </View>
   );
@@ -306,7 +324,7 @@ const HomeScreen: React.FC = () => {
               Alert.alert('Weekly Challenge', 'Complete practice sessions to meet your weekly goal!');
             }}
           >
-            <Text style={styles.challengeEmoji}>🎯</Text>
+            <AppIcon name="challenge" size={32} color="#6200ee" style={styles.challengeIcon} />
             <Text style={styles.challengeTitle}>{weeklyChallenge?.title || i18n.t('home.completePracticeSessions')}</Text>
             <Text style={styles.challengeProgress}>
               {weeklyChallenge ? `${weeklyChallenge.current} of ${weeklyChallenge.target} completed` : '0 of 5 completed'}
@@ -391,7 +409,6 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   actionIcon: {
-    fontSize: 24,
     marginRight: 16,
   },
   actionContent: {
@@ -510,14 +527,23 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  durationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   durationText: {
     fontSize: 12,
     color: '#666',
+    marginLeft: 4,
+  },
+  completedContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   completedText: {
     fontSize: 12,
     fontWeight: '500',
-    color: '#6200ee',
+    marginLeft: 4,
   },
   recentCard: {
     backgroundColor: '#fff',
@@ -563,8 +589,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  achievementEmoji: {
-    fontSize: 32,
+  achievementIcon: {
     marginBottom: 8,
   },
   achievementTitle: {
@@ -584,8 +609,7 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
     elevation: 5,
   },
-  challengeEmoji: {
-    fontSize: 32,
+  challengeIcon: {
     marginBottom: 12,
   },
   challengeTitle: {
