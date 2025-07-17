@@ -11,6 +11,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
 import i18n from '../i18n';
 import { useAppData } from '../hooks/useAppData';
 
@@ -35,6 +36,7 @@ interface FeaturedLesson {
 }
 
 const HomeScreen: React.FC = () => {
+  const navigation = useNavigation();
   const [fadeAnim] = useState(new Animated.Value(0));
   const {
     userProgress,
@@ -71,7 +73,15 @@ const HomeScreen: React.FC = () => {
       subtitle: userProgress ? `Lesson ${userProgress.currentLesson + 1}: ${i18n.t(`lessons.${userProgress.currentLesson + 1}.title`)}` : 'Start your journey',
       icon: '▶️',
       color: '#6200ee',
-      onPress: () => Alert.alert('Continue', 'Navigate to next lesson')
+      onPress: () => {
+        if (userProgress && userProgress.currentLesson < 14) {
+          // Navigate to the next lesson
+          navigation.navigate('Lessons' as never);
+          Alert.alert('Continue Learning', `Navigate to Lesson ${userProgress.currentLesson + 1}`);
+        } else {
+          Alert.alert('Congratulations!', 'You have completed all lessons!');
+        }
+      }
     },
     {
       id: 'daily',
@@ -79,11 +89,9 @@ const HomeScreen: React.FC = () => {
       subtitle: '5 min rhythm exercise',
       icon: '⏰',
       color: '#03dac6',
-      onPress: async () => {
-        const success = await addPracticeSession('rhythm', 5, 10, 8, 80);
-        if (success) {
-          Alert.alert('Practice Complete', 'Great job! Your practice session has been recorded.');
-        }
+      onPress: () => {
+        navigation.navigate('Practice' as never);
+        Alert.alert('Daily Practice', 'Starting your daily practice session...');
       }
     },
     {
@@ -92,11 +100,9 @@ const HomeScreen: React.FC = () => {
       subtitle: 'Test your knowledge',
       icon: '📝',
       color: '#ff6b6b',
-      onPress: async () => {
-        const success = await addQuizResult('quick_quiz', 85, 10, 8, 300);
-        if (success) {
-          Alert.alert('Quiz Complete', 'Your quiz results have been saved!');
-        }
+      onPress: () => {
+        navigation.navigate('Quiz' as never);
+        Alert.alert('Quick Quiz', 'Starting your quiz...');
       }
     }
   ];
@@ -156,7 +162,13 @@ const HomeScreen: React.FC = () => {
   );
 
   const FeaturedLessonCard = ({ lesson }: { lesson: FeaturedLesson }) => (
-    <TouchableOpacity style={styles.featuredCard}>
+    <TouchableOpacity 
+      style={styles.featuredCard}
+      onPress={() => {
+        navigation.navigate('Lessons' as never);
+        Alert.alert('Featured Lesson', `Opening ${lesson.title}`);
+      }}
+    >
       <View style={styles.featuredHeader}>
         <Text style={styles.featuredTitle}>{lesson.title}</Text>
         <View style={[styles.difficultyBadge, { backgroundColor: lesson.difficulty === 'Beginner' ? '#96CEB4' : '#FFB347' }]}>
@@ -249,19 +261,36 @@ const HomeScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>{i18n.t('home.recentActivity')}</Text>
           <View style={styles.recentCard}>
             {recentLessons.map(lesson => (
-              <View key={lesson.lessonId} style={styles.recentItem}>
+              <TouchableOpacity 
+                key={lesson.lessonId} 
+                style={styles.recentItem}
+                onPress={() => {
+                  navigation.navigate('Lessons' as never);
+                  Alert.alert('Recent Lesson', `Reviewing ${i18n.t(`lessons.${lesson.lessonId}.title`)}`);
+                }}
+              >
                 <Text style={styles.recentTitle}>{i18n.t(`lessons.${lesson.lessonId}.title`)}</Text>
                 <Text style={styles.recentProgress}>100% complete</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </View>
         </View>
 
         {/* Achievements */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{i18n.t('home.achievements')}</Text>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{i18n.t('home.achievements')}</Text>
+            <TouchableOpacity 
+              onPress={() => {
+                navigation.navigate('Settings' as never);
+                Alert.alert('Achievements', 'View all achievements in Settings');
+              }}
+            >
+              <Text style={styles.viewAllText}>View All</Text>
+            </TouchableOpacity>
+          </View>
           <View style={styles.achievementsContainer}>
-            {achievements.map(achievement => (
+            {achievements.slice(0, 4).map(achievement => (
               <AchievementCard key={achievement.id} achievement={achievement} />
             ))}
           </View>
@@ -270,7 +299,13 @@ const HomeScreen: React.FC = () => {
         {/* Weekly Challenge */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{i18n.t('home.weeklyChallenge')}</Text>
-          <View style={styles.challengeCard}>
+          <TouchableOpacity 
+            style={styles.challengeCard}
+            onPress={() => {
+              navigation.navigate('Practice' as never);
+              Alert.alert('Weekly Challenge', 'Complete practice sessions to meet your weekly goal!');
+            }}
+          >
             <Text style={styles.challengeEmoji}>🎯</Text>
             <Text style={styles.challengeTitle}>{weeklyChallenge?.title || i18n.t('home.completePracticeSessions')}</Text>
             <Text style={styles.challengeProgress}>
@@ -282,7 +317,7 @@ const HomeScreen: React.FC = () => {
                 { width: weeklyChallenge ? `${(weeklyChallenge.current / weeklyChallenge.target) * 100}%` : '0%' }
               ]} />
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
 
         {/* Motivational Quote */}
@@ -329,6 +364,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 16,
     color: '#333',
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  viewAllText: {
+    fontSize: 14,
+    color: '#6200ee',
+    fontWeight: '500',
   },
   quickActionCard: {
     backgroundColor: '#fff',

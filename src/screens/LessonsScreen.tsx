@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import LessonViewer, { LessonContent } from '../components/LessonViewer';
 import PracticeActivity from '../components/PracticeActivity';
 import Quiz from '../components/Quiz';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import i18n from '../i18n';
+import { useAppData } from '../hooks/useAppData';
 
 const LessonsScreen: React.FC = () => {
   const [step, setStep] = useState(0);
@@ -11,12 +12,13 @@ const LessonsScreen: React.FC = () => {
   const [showQuiz, setShowQuiz] = useState(false);
   const [quizScore, setQuizScore] = useState<number | null>(null);
   const [quizModule, setQuizModule] = useState<string | null>(null);
+  const { completeLesson, addPracticeSession, addQuizResult } = useAppData();
 
   const moduleBoundaries = [3, 7, 10, 12, 13]; // End indices for each module
   const moduleKeys = ['basics', 'notes', 'rhythm', 'scales', 'chords'];
 
   const getLessonContent = (step: number): LessonContent => {
-    const lessonData = i18n.t(`lessons.${step}`);
+    const lessonData = i18n.t(`lessons.${step}`) as any;
     return {
       title: lessonData.title,
       text: lessonData.text,
@@ -26,11 +28,11 @@ const LessonsScreen: React.FC = () => {
   };
 
   const getPracticeQuestions = () => {
-    if (step < 3) return i18n.t('practice.basics');
-    if (step < 7) return i18n.t('practice.notes');
-    if (step < 10) return i18n.t('practice.rhythm');
-    if (step < 12) return i18n.t('practice.scales');
-    return i18n.t('practice.chords');
+    if (step < 3) return i18n.t('practice.basics') as any;
+    if (step < 7) return i18n.t('practice.notes') as any;
+    if (step < 10) return i18n.t('practice.rhythm') as any;
+    if (step < 12) return i18n.t('practice.scales') as any;
+    return i18n.t('practice.chords') as any;
   };
 
   const getQuizModule = () => {
@@ -40,13 +42,37 @@ const LessonsScreen: React.FC = () => {
     return null;
   };
 
-  const handlePracticeComplete = (score: number, total: number) => {
+  const handlePracticeComplete = async (score: number, total: number) => {
     setShowPractice(false);
-    console.log(`Practice completed: ${score}/${total}`);
+    
+    // Determine practice type based on current step
+    let practiceType: 'rhythm' | 'notes' | 'scales' | 'chords' = 'rhythm';
+    if (step < 3) practiceType = 'rhythm';
+    else if (step < 7) practiceType = 'notes';
+    else if (step < 10) practiceType = 'rhythm';
+    else if (step < 12) practiceType = 'scales';
+    else practiceType = 'chords';
+    
+    // Record practice session
+    await addPracticeSession(practiceType, 5, total, score, (score / total) * 100);
+    
+    // Complete the lesson
+    await completeLesson(step, (score / total) * 100, 5);
+    
+    Alert.alert('Practice Complete', `Great job! You scored ${score}/${total}. Your progress has been saved.`);
   };
 
-  const handleQuizComplete = (score: number, total: number) => {
+  const handleQuizComplete = async (score: number, total: number) => {
     setQuizScore(score);
+    
+    // Record quiz result
+    const quizKey = getQuizModule();
+    if (quizKey) {
+      await addQuizResult(`quiz_${quizKey}`, (score / total) * 100, total, score, 300);
+    }
+    
+    // Complete the lesson
+    await completeLesson(step, (score / total) * 100, 10);
   };
 
   const handleQuizContinue = () => {
@@ -72,7 +98,7 @@ const LessonsScreen: React.FC = () => {
     if (quizScore === null) {
       return (
         <Quiz
-          questions={i18n.t(`quiz.${quizKey}`)}
+          questions={i18n.t(`quiz.${quizKey}`) as any}
           onComplete={handleQuizComplete}
         />
       );
