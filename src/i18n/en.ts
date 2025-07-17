@@ -10,7 +10,6 @@ export default {
     overallProgress: 'Overall Progress',
     dayStreak: 'Day Streak',
     totalPractice: 'Total Practice',
-    featuredLessons: 'Featured Lessons',
     recentActivity: 'Recent Activity',
     achievements: 'Achievements',
     weeklyChallenge: "This Week's Challenge",

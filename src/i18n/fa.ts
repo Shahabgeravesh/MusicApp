@@ -10,7 +10,6 @@ export default {
     overallProgress: 'پیشرفت کلی',
     dayStreak: 'روز متوالی',
     totalPractice: 'کل تمرین',
-    featuredLessons: 'درس‌های ویژه',
     recentActivity: 'فعالیت اخیر',
     achievements: 'دستاوردها',
     weeklyChallenge: 'چالش هفته',

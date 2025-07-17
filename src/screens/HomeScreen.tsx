@@ -27,14 +27,7 @@ interface QuickAction {
   onPress: () => void;
 }
 
-interface FeaturedLesson {
-  id: number;
-  title: string;
-  description: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  duration: string;
-  completed: boolean;
-}
+
 
 const HomeScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -108,32 +101,7 @@ const HomeScreen: React.FC = () => {
     }
   ];
 
-  const featuredLessons: FeaturedLesson[] = [
-    {
-      id: 4,
-      title: 'Notes and Pitches',
-      description: 'Learn to read musical notes',
-      difficulty: 'Beginner',
-      duration: '10 min',
-      completed: completedLessons.some(lesson => lesson.lessonId === 4)
-    },
-    {
-      id: 7,
-      title: 'Major Scales',
-      description: 'Master the major scale pattern',
-      difficulty: 'Intermediate',
-      duration: '15 min',
-      completed: completedLessons.some(lesson => lesson.lessonId === 7)
-    },
-    {
-      id: 11,
-      title: 'Chords',
-      description: 'Build and play basic chords',
-      difficulty: 'Intermediate',
-      duration: '20 min',
-      completed: completedLessons.some(lesson => lesson.lessonId === 11)
-    }
-  ];
+
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -162,39 +130,7 @@ const HomeScreen: React.FC = () => {
     </TouchableOpacity>
   );
 
-  const FeaturedLessonCard = ({ lesson }: { lesson: FeaturedLesson }) => (
-    <TouchableOpacity 
-      style={styles.featuredCard}
-      onPress={() => {
-        navigation.navigate('Lessons' as never);
-        Alert.alert('Featured Lesson', `Opening ${lesson.title}`);
-      }}
-    >
-      <View style={styles.featuredHeader}>
-        <Text style={styles.featuredTitle}>{lesson.title}</Text>
-        <View style={[styles.difficultyBadge, { backgroundColor: lesson.difficulty === 'Beginner' ? '#96CEB4' : '#FFB347' }]}>
-          <Text style={styles.difficultyText}>{lesson.difficulty}</Text>
-        </View>
-      </View>
-      <Text style={styles.featuredDescription}>{lesson.description}</Text>
-      <View style={styles.featuredFooter}>
-        <View style={styles.durationContainer}>
-          <AppIcon name="clock" size={16} color="#666" />
-          <Text style={styles.durationText}>{lesson.duration}</Text>
-        </View>
-        <View style={styles.completedContainer}>
-          <AppIcon 
-            name={lesson.completed ? "checkmark" : "play"} 
-            size={16} 
-            color={lesson.completed ? "#4CAF50" : "#6200ee"} 
-          />
-          <Text style={[styles.completedText, { color: lesson.completed ? "#4CAF50" : "#6200ee" }]}>
-            {lesson.completed ? 'Completed' : 'Start'}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+
 
   const AchievementCard = ({ achievement }: { achievement: any }) => (
     <View style={[styles.achievementCard, { opacity: achievement.unlocked ? 1 : 0.5 }]}>
@@ -266,13 +202,7 @@ const HomeScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Featured Lessons */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{i18n.t('home.featuredLessons')}</Text>
-          {featuredLessons.map(lesson => (
-            <FeaturedLessonCard key={lesson.id} lesson={lesson} />
-          ))}
-        </View>
+
 
         {/* Recent Activity */}
         <View style={styles.section}>
@@ -484,67 +414,7 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 4,
   },
-  featuredCard: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  featuredHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  featuredTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    flex: 1,
-  },
-  difficultyBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  difficultyText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#fff',
-  },
-  featuredDescription: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 12,
-  },
-  featuredFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  durationContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  durationText: {
-    fontSize: 12,
-    color: '#666',
-    marginLeft: 4,
-  },
-  completedContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  completedText: {
-    fontSize: 12,
-    fontWeight: '500',
-    marginLeft: 4,
-  },
+
   recentCard: {
     backgroundColor: '#fff',
     borderRadius: 12,
