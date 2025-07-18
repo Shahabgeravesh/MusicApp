@@ -1,12 +1,17 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, I18nManager, Switch, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, I18nManager, Switch, ScrollView, Alert, Modal, Dimensions } from 'react-native';
 import i18n from '../i18n';
+import { useAppData } from '../hooks/useAppData';
+import AppIcon from '../components/AppIcon';
 
 const SettingsScreen: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState(i18n.locale);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [soundEnabled, setSoundEnabled] = useState(true);
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(false);
+  const [showAchievements, setShowAchievements] = useState(false);
+  
+  const { achievements, unlockedAchievements } = useAppData();
 
   const switchLanguage = (language: string) => {
     if (language === currentLanguage) return;
@@ -127,6 +132,17 @@ const SettingsScreen: React.FC = () => {
         />
       </View>
 
+      {/* Achievements */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Achievements</Text>
+        <SettingItem
+          title="View Achievements"
+          subtitle={`${unlockedAchievements.length} of ${achievements.length} unlocked`}
+          value=""
+          onPress={() => setShowAchievements(true)}
+        />
+      </View>
+
       {/* Progress & Data */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Progress & Data</Text>
@@ -178,6 +194,74 @@ const SettingsScreen: React.FC = () => {
           onPress={() => alert('Contact support coming soon!')}
         />
       </View>
+
+      {/* Achievements Modal */}
+      <Modal
+        visible={showAchievements}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowAchievements(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Achievements</Text>
+              <TouchableOpacity onPress={() => setShowAchievements(false)}>
+                <AppIcon name="close" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.achievementsList}>
+              {achievements.map((achievement) => (
+                <View key={achievement.id} style={[
+                  styles.achievementItem,
+                  achievement.unlocked && styles.unlockedAchievement
+                ]}>
+                  <View style={styles.achievementIcon}>
+                    <AppIcon 
+                      name={achievement.unlocked ? "achievement" : "star"} 
+                      size={24} 
+                      color={achievement.unlocked ? "#FFD700" : "#ccc"} 
+                    />
+                  </View>
+                  <View style={styles.achievementInfo}>
+                    <Text style={[
+                      styles.achievementTitle,
+                      !achievement.unlocked && styles.lockedAchievementTitle
+                    ]}>
+                      {achievement.title}
+                    </Text>
+                    <Text style={[
+                      styles.achievementDescription,
+                      !achievement.unlocked && styles.lockedAchievementDescription
+                    ]}>
+                      {achievement.description}
+                    </Text>
+                    {achievement.unlocked && achievement.unlockedAt && (
+                      <Text style={styles.achievementDate}>
+                        Unlocked: {new Date(achievement.unlockedAt).toLocaleDateString()}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={styles.achievementProgress}>
+                    <Text style={styles.progressText}>
+                      {achievement.progress}/{achievement.maxProgress}
+                    </Text>
+                    <View style={styles.progressBar}>
+                      <View 
+                        style={[
+                          styles.progressFill, 
+                          { width: `${(achievement.progress / achievement.maxProgress) * 100}%` }
+                        ]} 
+                      />
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -274,6 +358,100 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#6200ee',
     fontWeight: 500,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    width: Dimensions.get('window').width - 40,
+    maxHeight: '80%',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  achievementsList: {
+    maxHeight: 500,
+  },
+  achievementItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0',
+    opacity: 0.6,
+  },
+  unlockedAchievement: {
+    opacity: 1,
+    backgroundColor: '#F8F9FA',
+  },
+  achievementIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  achievementInfo: {
+    flex: 1,
+  },
+  achievementTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 4,
+  },
+  lockedAchievementTitle: {
+    color: '#999',
+  },
+  achievementDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  lockedAchievementDescription: {
+    color: '#ccc',
+  },
+  achievementDate: {
+    fontSize: 12,
+    color: '#4CAF50',
+    fontWeight: '500',
+  },
+  achievementProgress: {
+    alignItems: 'flex-end',
+    minWidth: 60,
+  },
+  progressText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 4,
+  },
+  progressBar: {
+    width: 60,
+    height: 4,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 2,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#4CAF50',
+    borderRadius: 2,
   },
 });
 

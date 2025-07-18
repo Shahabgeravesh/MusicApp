@@ -9,6 +9,7 @@ import storage, {
   QuizResult, 
   AppSettings 
 } from '../utils/storage';
+import { ChallengeSystem } from '../utils/challengeSystem';
 
 export const useAppData = () => {
   // State for all app data
@@ -180,9 +181,132 @@ export const useAppData = () => {
         setAchievements(updatedAchievements);
       }
 
+      // Update weekly challenge progress
+      await updateWeeklyChallengeProgress();
+
       return true;
     } catch (error) {
       console.error('Error adding quiz result:', error);
+      return false;
+    }
+  }, []);
+
+  // Challenge Actions
+  const updateWeeklyChallengeProgress = useCallback(async () => {
+    try {
+      const currentChallenge = await storage.getWeeklyChallenge();
+      if (!currentChallenge) return;
+
+      // Check if we need to generate a new challenge
+      const isActive = ChallengeSystem.isChallengeActive(currentChallenge);
+      if (!isActive) {
+        const newChallenge = ChallengeSystem.generateWeeklyChallenge();
+        await storage.updateWeeklyChallengeFull(newChallenge);
+        setWeeklyChallenge(newChallenge);
+        return;
+      }
+
+      // Calculate progress based on challenge type
+      let newCurrent = currentChallenge.current;
+      
+      switch (currentChallenge.type) {
+        case 'practice':
+          // Count practice sessions this week
+          const weekSessions = practiceSessions.filter(session => {
+            const sessionDate = new Date(session.date);
+            const startDate = new Date(currentChallenge.startDate);
+            const endDate = new Date(currentChallenge.endDate);
+            return sessionDate >= startDate && sessionDate <= endDate;
+          });
+          newCurrent = weekSessions.length;
+          break;
+          
+        case 'quiz':
+          // Count high-scoring quizzes this week
+          const quizResults = await storage.getQuizResults();
+          const weekQuizzes = quizResults.filter(result => {
+            const resultDate = new Date(result.date);
+            const startDate = new Date(currentChallenge.startDate);
+            const endDate = new Date(currentChallenge.endDate);
+            return resultDate >= startDate && resultDate <= endDate && result.score >= 80;
+          });
+          newCurrent = weekQuizzes.length;
+          break;
+          
+        case 'streak':
+          // Use current learning streak
+          newCurrent = learningStreak?.currentStreak || 0;
+          break;
+          
+        case 'exploration':
+          // Count new lessons completed this week
+          const weekLessons = completedLessons.filter(lesson => {
+            const lessonDate = new Date(lesson.completedAt);
+            const startDate = new Date(currentChallenge.startDate);
+            const endDate = new Date(currentChallenge.endDate);
+            return lessonDate >= startDate && lessonDate <= endDate;
+          });
+          newCurrent = weekLessons.length;
+          break;
+          
+        case 'mastery':
+          // Count high-accuracy practice sessions
+          const masterySessions = practiceSessions.filter(session => {
+            const sessionDate = new Date(session.date);
+            const startDate = new Date(currentChallenge.startDate);
+            const endDate = new Date(currentChallenge.endDate);
+            return sessionDate >= startDate && sessionDate <= endDate && 
+                   session.score && session.score >= 95;
+          });
+          newCurrent = masterySessions.length;
+          break;
+      }
+
+      // Update challenge progress
+      const updatedChallenge = {
+        ...currentChallenge,
+        current: Math.min(newCurrent, currentChallenge.target),
+        progress: Math.min((newCurrent / currentChallenge.target) * 100, 100),
+        completed: newCurrent >= currentChallenge.target,
+      };
+
+      await storage.updateWeeklyChallengeFull(updatedChallenge);
+      setWeeklyChallenge(updatedChallenge);
+
+      // Award points and badge if completed
+      if (updatedChallenge.completed && !currentChallenge.completed) {
+        // Update user points (you might want to add this to storage)
+        console.log(`Challenge completed! Awarded ${updatedChallenge.reward.points} points`);
+        
+        // Update achievement if there's a badge
+        if (updatedChallenge.reward.badge) {
+          await storage.updateAchievement(updatedChallenge.reward.badge, 1);
+          const updatedAchievements = await storage.getAchievements();
+          setAchievements(updatedAchievements);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating weekly challenge progress:', error);
+    }
+  }, [practiceSessions, completedLessons, learningStreak]);
+
+  const completeWeeklyChallenge = useCallback(async () => {
+    try {
+      const currentChallenge = await storage.getWeeklyChallenge();
+      if (!currentChallenge) return;
+
+      const updatedChallenge = {
+        ...currentChallenge,
+        completed: true,
+        progress: 100,
+      };
+
+      await storage.updateWeeklyChallengeFull(updatedChallenge);
+      setWeeklyChallenge(updatedChallenge);
+
+      return true;
+    } catch (error) {
+      console.error('Error completing weekly challenge:', error);
       return false;
     }
   }, []);
@@ -279,5 +403,7 @@ export const useAppData = () => {
     exportData,
     importData,
     refreshData: loadAllData,
+    updateWeeklyChallengeProgress,
+    completeWeeklyChallenge,
   };
 }; 

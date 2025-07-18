@@ -2,10 +2,6 @@ export default {
   home: {
     title: 'به برنامه آموزش تئوری موسیقی خوش آمدید!',
     subtitle: 'مبانی تئوری موسیقی، گام‌ها و ریتم را بیاموزید.',
-    quickActions: 'عملیات سریع',
-    continueLearning: 'ادامه یادگیری',
-    dailyPractice: 'تمرین روزانه',
-    quickQuiz: 'آزمون سریع',
     yourProgress: 'پیشرفت شما',
     overallProgress: 'پیشرفت کلی',
     dayStreak: 'روز متوالی',
@@ -16,9 +12,17 @@ export default {
     completePracticeSessions: 'تکمیل ۵ جلسه تمرین',
     ofCompleted: 'از {{total}} تکمیل شده',
     motivationalQuote: '"موسیقی زبان جهانی بشریت است."',
-    quoteAuthor: '- هنری وادزورث لانگفلو'
+    quoteAuthor: '- هنری وادزورث لانگفلو',
+    challengeStrategy: 'استراتژی چالش',
+    proTips: 'نکات حرفه‌ای',
+    challengeComplete: 'چالش تکمیل شد!',
+    challengeProgress: 'پیشرفت چالش',
+    challengeReward: 'پاداش چالش',
+    gotIt: 'متوجه شدم!',
+    thanksForTips: 'ممنون از نکات!'
   },
   lessons: {
+    title: 'درس‌های تئوری موسیقی',
     0: {
       title: 'موسیقی چیست؟',
       text: 'موسیقی هنر چیدمان صداها در زمان برای ایجاد یک قطعه از طریق عناصر ملودی، هارمونی، ریتم و رنگ‌آمیزی صوتی است. موسیقی زبانی جهانی است که احساسات و ایده‌ها را بیان می‌کند.'

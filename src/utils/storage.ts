@@ -61,11 +61,21 @@ export interface WeeklyChallenge {
   id: string;
   title: string;
   description: string;
+  type: 'practice' | 'quiz' | 'streak' | 'exploration' | 'mastery';
+  difficulty: 'easy' | 'medium' | 'hard';
   target: number;
   current: number;
+  reward: {
+    points: number;
+    badge?: string;
+    title?: string;
+  };
+  strategy: string;
+  tips: string[];
   startDate: string;
   endDate: string;
   completed: boolean;
+  progress: number;
 }
 
 export interface QuizResult {
@@ -333,13 +343,29 @@ class StorageManager {
 
     return this.getItem(STORAGE_KEYS.WEEKLY_CHALLENGE, {
       id: `week_${startOfWeek.getTime()}`,
-      title: 'Complete 5 Practice Sessions',
-      description: 'Practice regularly this week to build good habits',
+      title: 'Rhythm Master',
+      description: 'Complete 5 rhythm practice sessions this week',
+      type: 'practice',
+      difficulty: 'easy',
       target: 5,
       current: 0,
+      reward: {
+        points: 100,
+        badge: 'rhythm_master',
+        title: 'Rhythm Master'
+      },
+      strategy: 'Practice rhythm exercises for 5-10 minutes daily. Focus on different time signatures and note values.',
+      tips: [
+        'Start with simple 4/4 rhythms',
+        'Use a metronome to keep steady tempo',
+        'Practice clapping before playing',
+        'Try different note combinations',
+        'Record yourself to track improvement'
+      ],
       startDate: startOfWeek.toISOString(),
       endDate: endOfWeek.toISOString(),
       completed: false,
+      progress: 0,
     });
   }
 
@@ -352,6 +378,10 @@ class StorageManager {
     };
     
     await this.setItem(STORAGE_KEYS.WEEKLY_CHALLENGE, updatedChallenge);
+  }
+
+  async updateWeeklyChallengeFull(challenge: WeeklyChallenge): Promise<void> {
+    await this.setItem(STORAGE_KEYS.WEEKLY_CHALLENGE, challenge);
   }
 
   // Quiz Results Methods

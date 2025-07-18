@@ -2,10 +2,6 @@ export default {
   home: {
     title: 'Welcome to Music Theory App!',
     subtitle: 'Learn the basics of music theory, scales, and rhythm.',
-    quickActions: 'Quick Actions',
-    continueLearning: 'Continue Learning',
-    dailyPractice: 'Daily Practice',
-    quickQuiz: 'Quick Quiz',
     yourProgress: 'Your Progress',
     overallProgress: 'Overall Progress',
     dayStreak: 'Day Streak',
@@ -16,9 +12,17 @@ export default {
     completePracticeSessions: 'Complete 5 Practice Sessions',
     ofCompleted: 'of {{total}} completed',
     motivationalQuote: '"Music is the universal language of mankind."',
-    quoteAuthor: '- Henry Wadsworth Longfellow'
+    quoteAuthor: '- Henry Wadsworth Longfellow',
+    challengeStrategy: 'Challenge Strategy',
+    proTips: 'Pro Tips',
+    challengeComplete: 'Challenge Complete!',
+    challengeProgress: 'Challenge Progress',
+    challengeReward: 'Challenge Reward',
+    gotIt: 'Got it!',
+    thanksForTips: 'Thanks for the tips!'
   },
   lessons: {
+    title: 'Music Theory Lessons',
     0: {
       title: 'What is Music?',
       text: 'Music is the art of arranging sounds in time to produce a composition through the elements of melody, harmony, rhythm, and timbre. It is a universal language that expresses emotions and ideas.'
