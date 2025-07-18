@@ -111,6 +111,11 @@ const iconMap: Record<string, { ios: keyof typeof Ionicons.glyphMap; android: ke
   'graduation': { ios: 'school', android: 'school' },
   'certificate': { ios: 'ribbon', android: 'ribbon' },
   'medal': { ios: 'medal', android: 'medal' },
+  'school': { ios: 'school', android: 'school' },
+  'musical-notes': { ios: 'musical-notes', android: 'musical-notes' },
+  'pulse': { ios: 'pulse', android: 'pulse' },
+  'trending-up': { ios: 'trending-up', android: 'trending-up' },
+  'layers': { ios: 'layers', android: 'layers' },
   
   // Default fallback
   'default': { ios: 'help-circle', android: 'help-circle' },

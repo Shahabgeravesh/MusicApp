@@ -1,3 +1,6 @@
+// @ts-ignore
+// eslint-disable-next-line no-undef
+/* global console */
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -15,19 +18,24 @@ import AppIcon from '../components/AppIcon';
 import i18n from '../i18n';
 import { useAppData } from '../hooks/useAppData';
 import { useNavigation } from '@react-navigation/native';
+import { curriculum, getLessonById, getPrerequisitesMet } from '../data/curriculum';
+import LessonViewer from '../components/LessonViewer';
 
 const { width } = Dimensions.get('window');
 
 interface Lesson {
   id: number;
   title: string;
+  titleFa: string;
   description: string;
-  duration: number; // in minutes
+  descriptionFa: string;
+  duration: number;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
   category: 'basics' | 'notes' | 'rhythm' | 'scales' | 'chords' | 'theory';
   completed: boolean;
   score?: number;
   timeSpent?: number;
+  prerequisites: number[];
 }
 
 const LessonsScreen: React.FC = () => {
@@ -35,6 +43,7 @@ const LessonsScreen: React.FC = () => {
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [showLessonModal, setShowLessonModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [filterCategory, setFilterCategory] = useState<string | null>(null);
   
   const {
     userProgress,
@@ -45,135 +54,19 @@ const LessonsScreen: React.FC = () => {
     updateWeeklyChallengeProgress,
   } = useAppData();
 
-  // Lesson data with comprehensive content
-  const lessons: Lesson[] = [
-    {
-      id: 1,
-      title: i18n.t('lessons.0.title'),
-      description: 'Introduction to music and its fundamental concepts',
-      duration: 5,
-      difficulty: 'beginner',
-      category: 'basics',
-      completed: false,
-    },
-    {
-      id: 2,
-      title: i18n.t('lessons.1.title'),
-      description: 'Understanding the musical staff and its structure',
-      duration: 8,
-      difficulty: 'beginner',
-      category: 'basics',
-      completed: false,
-    },
-    {
-      id: 3,
-      title: i18n.t('lessons.2.title'),
-      description: 'Learning about treble and bass clefs',
-      duration: 10,
-      difficulty: 'beginner',
-      category: 'basics',
-      completed: false,
-    },
-    {
-      id: 4,
-      title: i18n.t('lessons.3.title'),
-      description: 'Mastering note reading and pitch recognition',
-      duration: 12,
-      difficulty: 'intermediate',
-      category: 'notes',
-      completed: false,
-    },
-    {
-      id: 5,
-      title: i18n.t('lessons.4.title'),
-      description: 'Understanding musical silence and rest values',
-      duration: 8,
-      difficulty: 'intermediate',
-      category: 'rhythm',
-      completed: false,
-    },
-    {
-      id: 6,
-      title: i18n.t('lessons.5.title'),
-      description: 'Learning note durations and time values',
-      duration: 15,
-      difficulty: 'intermediate',
-      category: 'rhythm',
-      completed: false,
-    },
-    {
-      id: 7,
-      title: i18n.t('lessons.6.title'),
-      description: 'Understanding time signatures and meter',
-      duration: 12,
-      difficulty: 'intermediate',
-      category: 'rhythm',
-      completed: false,
-    },
-    {
-      id: 8,
-      title: i18n.t('lessons.7.title'),
-      description: 'Building major scales and their patterns',
-      duration: 15,
-      difficulty: 'advanced',
-      category: 'scales',
-      completed: false,
-    },
-    {
-      id: 9,
-      title: i18n.t('lessons.8.title'),
-      description: 'Exploring minor scales and their variations',
-      duration: 15,
-      difficulty: 'advanced',
-      category: 'scales',
-      completed: false,
-    },
-    {
-      id: 10,
-      title: i18n.t('lessons.9.title'),
-      description: 'Understanding key signatures and transposition',
-      duration: 18,
-      difficulty: 'advanced',
-      category: 'theory',
-      completed: false,
-    },
-    {
-      id: 11,
-      title: i18n.t('lessons.10.title'),
-      description: 'Learning musical intervals and their relationships',
-      duration: 20,
-      difficulty: 'advanced',
-      category: 'theory',
-      completed: false,
-    },
-    {
-      id: 12,
-      title: i18n.t('lessons.11.title'),
-      description: 'Building chords and understanding harmony',
-      duration: 18,
-      difficulty: 'advanced',
-      category: 'chords',
-      completed: false,
-    },
-    {
-      id: 13,
-      title: i18n.t('lessons.12.title'),
-      description: 'Mastering rhythm patterns and timing',
-      duration: 15,
-      difficulty: 'intermediate',
-      category: 'rhythm',
-      completed: false,
-    },
-    {
-      id: 14,
-      title: i18n.t('lessons.13.title'),
-      description: 'Putting all concepts together in practice',
-      duration: 25,
-      difficulty: 'advanced',
-      category: 'theory',
-      completed: false,
-    },
-  ];
+  // Convert curriculum data to lesson format
+  const lessons: Lesson[] = curriculum.map(lesson => ({
+    id: lesson.id,
+    title: lesson.title,
+    titleFa: lesson.titleFa,
+    description: lesson.description,
+    descriptionFa: lesson.descriptionFa,
+    duration: lesson.duration,
+    difficulty: lesson.difficulty,
+    category: lesson.category,
+    completed: false,
+    prerequisites: lesson.prerequisites,
+  }));
 
   // Update lesson completion status based on user progress
   useEffect(() => {
@@ -198,280 +91,288 @@ const LessonsScreen: React.FC = () => {
     }
   };
 
-  const getCategoryIcon = (category: string) => {
+  const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'basics': return 'book';
-      case 'notes': return 'music-note';
-      case 'rhythm': return 'musical-notes';
-      case 'scales': return 'scale';
-      case 'chords': return 'layers';
-      case 'theory': return 'graduation';
-      default: return 'star';
+      case 'basics': return '#6200ee';
+      case 'notes': return '#2196F3';
+      case 'rhythm': return '#FF9800';
+      case 'scales': return '#4CAF50';
+      case 'chords': return '#9C27B0';
+      case 'theory': return '#F44336';
+      default: return '#666';
     }
   };
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'basics': return '#4CAF50';
-      case 'notes': return '#2196F3';
-      case 'rhythm': return '#FF9800';
-      case 'scales': return '#9C27B0';
-      case 'chords': return '#F44336';
-      case 'theory': return '#607D8B';
-      default: return '#6200ee';
+      case 'basics': return 'school';
+      case 'notes': return 'musical-notes';
+      case 'rhythm': return 'pulse';
+      case 'scales': return 'trending-up';
+      case 'chords': return 'layers';
+      case 'theory': return 'library';
+      default: return 'help-circle';
     }
   };
 
   const handleLessonPress = (lesson: Lesson) => {
+    // Check if prerequisites are met
+    const completedLessonIds = completedLessons.map(cl => cl.lessonId);
+    const prerequisitesMet = lesson.prerequisites.every(prereq => 
+      completedLessonIds.includes(prereq)
+    );
+
+    if (!prerequisitesMet && lesson.prerequisites.length > 0) {
+      Alert.alert(
+        i18n.t('lessons.prerequisitesNotMet'),
+        i18n.t('lessons.completePrerequisites'),
+        [{ text: i18n.t('ok_button') }]
+      );
+      return;
+    }
+
     setSelectedLesson(lesson);
     setShowLessonModal(true);
   };
 
-  const handleStartLesson = async (lesson: Lesson) => {
+  const handleLessonComplete = async (lessonId: number, score: number) => {
     setShowLessonModal(false);
     setLoading(true);
 
     try {
-      // Simulate lesson completion with practice
-      const practiceScore = Math.floor(Math.random() * 20) + 80; // 80-100
-      const timeSpent = lesson.duration + Math.floor(Math.random() * 5);
-
-      // Add practice session
-      let practiceType: 'rhythm' | 'notes' | 'scales' | 'chords' = 'rhythm';
-      switch (lesson.category) {
-        case 'notes': practiceType = 'notes'; break;
-        case 'scales': practiceType = 'scales'; break;
-        case 'chords': practiceType = 'chords'; break;
-        default: practiceType = 'rhythm';
-      }
-
-      await addPracticeSession(practiceType, timeSpent, 10, 8, practiceScore);
+      // Complete the lesson
+      await completeLesson(lessonId, score);
       
-      // Complete lesson
-      await completeLesson(lesson.id, practiceScore, timeSpent);
-      
+             // Add practice session if score is good
+       if (score > 0) {
+         await addPracticeSession('rhythm', 10, 8, score, lessonId);
+       }
+
       // Update weekly challenge progress
       await updateWeeklyChallengeProgress();
 
       Alert.alert(
-        'Lesson Completed! 🎉',
-        `Great job! You've completed "${lesson.title}" with a score of ${practiceScore}%!`,
+        i18n.t('lessons.actions.lessonComplete'),
+        i18n.t('lessons.actions.lessonCompleteMessage'),
         [
-          {
-            text: 'Continue Learning',
+          { 
+            text: i18n.t('lessons.actions.nextLesson'), 
             onPress: () => {
-              // Navigate to practice or quiz based on lesson type
-              if (lesson.category === 'rhythm') {
-                navigation.navigate('Practice' as never);
-              } else if (lesson.category === 'theory') {
-                navigation.navigate('Quiz' as never);
-              } else {
-                // Stay on lessons screen
+              // Find next available lesson
+              const nextLesson = lessons.find(l => 
+                !l.completed && l.prerequisites.every(prereq => 
+                  completedLessons.some(cl => cl.lessonId === prereq)
+                )
+              );
+              if (nextLesson) {
+                setSelectedLesson(nextLesson);
+                setShowLessonModal(true);
               }
             }
-          }
+          },
+          { text: i18n.t('lessons.actions.backToLessons') }
         ]
       );
     } catch (error) {
       console.error('Error completing lesson:', error);
-      Alert.alert('Error', 'There was an issue completing the lesson. Please try again.');
+      Alert.alert(i18n.t('error'), i18n.t('lessons.completionError'));
     } finally {
       setLoading(false);
     }
   };
 
   const getProgressPercentage = () => {
-    if (!userProgress) return 0;
-    return (userProgress.completedLessons / userProgress.totalLessons) * 100;
+    const totalLessons = lessons.length;
+    const completedCount = completedLessons.length;
+    return totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0;
   };
 
   const getNextLesson = () => {
-    if (!userProgress) return lessons[0];
-    const nextLessonId = userProgress.currentLesson + 1;
-    return lessons.find(lesson => lesson.id === nextLessonId) || lessons[0];
+    return lessons.find(lesson => 
+      !lesson.completed && lesson.prerequisites.every(prereq => 
+        completedLessons.some(cl => cl.lessonId === prereq)
+      )
+    );
   };
+
+  const filteredLessons = filterCategory 
+    ? lessons.filter(lesson => lesson.category === filterCategory)
+    : lessons;
+
+  const categories = [
+    { key: null, title: i18n.t('lessons.categories.all'), icon: 'grid' },
+    { key: 'basics', title: i18n.t('lessons.categories.basics'), icon: 'school' },
+    { key: 'notes', title: i18n.t('lessons.categories.notes'), icon: 'musical-notes' },
+    { key: 'rhythm', title: i18n.t('lessons.categories.rhythm'), icon: 'pulse' },
+    { key: 'scales', title: i18n.t('lessons.categories.scales'), icon: 'trending-up' },
+    { key: 'chords', title: i18n.t('lessons.categories.chords'), icon: 'layers' },
+    { key: 'theory', title: i18n.t('lessons.categories.theory'), icon: 'library' },
+  ];
 
   if (loading) {
     return (
-      <View style={[styles.container, styles.centered]}>
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
         <ActivityIndicator size="large" color="#6200ee" />
-        <Text style={styles.loadingText}>Completing lesson...</Text>
+        <Text style={{ marginTop: 16, color: '#666' }}>{i18n.t('loading')}</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <LinearGradient colors={['#6200ee', '#03dac6']} style={styles.header}>
-          <Text style={styles.headerTitle}>{i18n.t('lessons.title')}</Text>
-          <Text style={styles.headerSubtitle}>Master music theory step by step</Text>
-          
-          {/* Progress Overview */}
-          <View style={styles.progressCard}>
-            <View style={styles.progressHeader}>
-              <Text style={styles.progressTitle}>Your Progress</Text>
-              <Text style={styles.progressPercentage}>{Math.round(getProgressPercentage())}%</Text>
-            </View>
-            <View style={styles.progressBar}>
-              <View style={[styles.progressFill, { width: `${getProgressPercentage()}%` }]} />
-            </View>
-            <Text style={styles.progressText}>
-              {userProgress?.completedLessons || 0} of {userProgress?.totalLessons || 14} lessons completed
-            </Text>
-          </View>
-        </LinearGradient>
-
-        {/* Continue Learning Section */}
-        {userProgress && userProgress.completedLessons > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Continue Learning</Text>
-            <TouchableOpacity 
-              style={styles.continueCard}
-              onPress={() => handleLessonPress(getNextLesson())}
-            >
-              <View style={styles.continueContent}>
-                <AppIcon name="play-circle" size={32} color="#6200ee" />
-                <View style={styles.continueText}>
-                  <Text style={styles.continueTitle}>{getNextLesson().title}</Text>
-                  <Text style={styles.continueSubtitle}>Next lesson in your journey</Text>
-                </View>
-              </View>
-              <AppIcon name="chevron-right" size={24} color="#666" />
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Lessons List */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>All Lessons</Text>
-          {lessons.map((lesson) => (
-            <TouchableOpacity
-              key={lesson.id}
-              style={[styles.lessonCard, lesson.completed && styles.completedLesson]}
-              onPress={() => handleLessonPress(lesson)}
-            >
-              <View style={styles.lessonHeader}>
-                <View style={styles.lessonInfo}>
-                  <View style={[styles.categoryIcon, { backgroundColor: getCategoryColor(lesson.category) }]}>
-                    <AppIcon name={getCategoryIcon(lesson.category)} size={20} color="#fff" />
-                  </View>
-                  <View style={styles.lessonDetails}>
-                    <Text style={styles.lessonTitle}>{lesson.title}</Text>
-                    <Text style={styles.lessonDescription}>{lesson.description}</Text>
-                  </View>
-                </View>
-                
-                <View style={styles.lessonMeta}>
-                  {lesson.completed && (
-                    <View style={styles.completedBadge}>
-                      <AppIcon name="checkmark" size={16} color="#fff" />
-                    </View>
-                  )}
-                  <View style={[styles.difficultyBadge, { backgroundColor: getDifficultyColor(lesson.difficulty) }]}>
-                    <Text style={styles.difficultyText}>{lesson.difficulty}</Text>
-                  </View>
-                  <Text style={styles.durationText}>{lesson.duration}m</Text>
-                </View>
-              </View>
-              
-              {lesson.completed && lesson.score && (
-                <View style={styles.scoreSection}>
-                  <Text style={styles.scoreText}>Score: {lesson.score}%</Text>
-                  {lesson.timeSpent && (
-                    <Text style={styles.timeText}>Time: {lesson.timeSpent}m</Text>
-                  )}
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
+      {/* Header */}
+      <LinearGradient colors={['#6200ee', '#03dac6']} style={styles.header}>
+        <Text style={styles.headerTitle}>{i18n.t('lessons.title')}</Text>
+        <Text style={styles.headerSubtitle}>
+          {i18n.t('lessons.progress', { 
+            completed: completedLessons.length, 
+            total: lessons.length 
+          })}
+        </Text>
+        
+        {/* Progress Bar */}
+        <View style={styles.progressBar}>
+          <View 
+            style={[
+              styles.progressFill, 
+              { width: `${getProgressPercentage()}%` }
+            ]} 
+          />
         </View>
+      </LinearGradient>
+
+      {/* Category Filter */}
+      <ScrollView 
+        horizontal 
+        showsHorizontalScrollIndicator={false}
+        style={styles.categoryFilter}
+        contentContainerStyle={styles.categoryFilterContent}
+      >
+        {categories.map((category) => (
+          <TouchableOpacity
+            key={category.key || 'all'}
+            style={[
+              styles.categoryButton,
+              filterCategory === category.key && styles.activeCategoryButton
+            ]}
+            onPress={() => setFilterCategory(category.key)}
+          >
+            <AppIcon 
+              name={category.icon} 
+              size={16} 
+              color={filterCategory === category.key ? '#fff' : '#6200ee'} 
+            />
+            <Text style={[
+              styles.categoryButtonText,
+              filterCategory === category.key && styles.activeCategoryButtonText
+            ]}>
+              {category.title}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </ScrollView>
 
-      {/* Lesson Detail Modal */}
+      {/* Lessons List */}
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {filteredLessons.length === 0 ? (
+          <View style={styles.emptyState}>
+            <AppIcon name="library" size={64} color="#ccc" />
+            <Text style={styles.emptyStateTitle}>
+              {i18n.t('lessons.noLessonsInCategory')}
+            </Text>
+            <Text style={styles.emptyStateText}>
+              {i18n.t('lessons.tryDifferentCategory')}
+            </Text>
+          </View>
+        ) : (
+          filteredLessons.map((lesson) => {
+            const isAvailable = lesson.prerequisites.every(prereq => 
+              completedLessons.some(cl => cl.lessonId === prereq)
+            );
+            
+            return (
+              <TouchableOpacity
+                key={lesson.id}
+                style={[
+                  styles.lessonCard,
+                  !isAvailable && styles.lockedLessonCard
+                ]}
+                onPress={() => handleLessonPress(lesson)}
+                disabled={!isAvailable}
+              >
+                <View style={styles.lessonHeader}>
+                  <View style={styles.lessonInfo}>
+                    <View style={styles.lessonTitleRow}>
+                      <AppIcon 
+                        name={getCategoryIcon(lesson.category)} 
+                        size={24} 
+                        color={getCategoryColor(lesson.category)} 
+                      />
+                      <Text style={styles.lessonTitle}>
+                        {i18n.locale === 'fa' ? lesson.titleFa : lesson.title}
+                      </Text>
+                      {lesson.completed && (
+                        <AppIcon name="checkmark-circle" size={20} color="#4CAF50" />
+                      )}
+                    </View>
+                    
+                    <Text style={styles.lessonDescription}>
+                      {i18n.locale === 'fa' ? lesson.descriptionFa : lesson.description}
+                    </Text>
+                  </View>
+
+                  <View style={styles.lessonMeta}>
+                    <View style={[
+                      styles.difficultyBadge, 
+                      { backgroundColor: getDifficultyColor(lesson.difficulty) }
+                    ]}>
+                      <Text style={styles.difficultyText}>
+                        {i18n.t(`lessons.difficulties.${lesson.difficulty}`)}
+                      </Text>
+                    </View>
+                    
+                    <View style={styles.durationBadge}>
+                      <AppIcon name="time" size={14} color="#666" />
+                      <Text style={styles.durationText}>{lesson.duration}m</Text>
+                    </View>
+                  </View>
+                </View>
+
+                {lesson.completed && lesson.score !== undefined && (
+                  <View style={styles.completionInfo}>
+                    <Text style={styles.completionText}>
+                      {i18n.t('lessons.completedWithScore', { score: lesson.score })}
+                    </Text>
+                  </View>
+                )}
+
+                {!isAvailable && (
+                  <View style={styles.lockedOverlay}>
+                    <AppIcon name="lock-closed" size={24} color="#ccc" />
+                    <Text style={styles.lockedText}>
+                      {i18n.t('lessons.completePrerequisitesFirst')}
+                    </Text>
+                  </View>
+                )}
+              </TouchableOpacity>
+            );
+          })
+        )}
+      </ScrollView>
+
+      {/* Lesson Viewer Modal */}
       <Modal
         visible={showLessonModal}
         animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowLessonModal(false)}
+        presentationStyle="fullScreen"
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            {selectedLesson && (
-              <>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>{selectedLesson.title}</Text>
-                  <TouchableOpacity onPress={() => setShowLessonModal(false)}>
-                    <AppIcon name="close" size={24} color="#666" />
-                  </TouchableOpacity>
-                </View>
-
-                <ScrollView style={styles.modalScroll}>
-                  <View style={styles.lessonContent}>
-                    <Text style={styles.lessonText}>
-                      {i18n.t(`lessons.${selectedLesson.id - 1}.text`)}
-                    </Text>
-                    
-                    <View style={styles.lessonStats}>
-                      <View style={styles.statItem}>
-                        <AppIcon name="time" size={16} color="#666" />
-                        <Text style={styles.statText}>{selectedLesson.duration} minutes</Text>
-                      </View>
-                      <View style={styles.statItem}>
-                        <AppIcon name="trending-up" size={16} color="#666" />
-                        <Text style={styles.statText}>{selectedLesson.difficulty}</Text>
-                      </View>
-                      <View style={styles.statItem}>
-                        <AppIcon name={getCategoryIcon(selectedLesson.category)} size={16} color="#666" />
-                        <Text style={styles.statText}>{selectedLesson.category}</Text>
-                      </View>
-                    </View>
-
-                    {selectedLesson.completed ? (
-                      <View style={styles.completedSection}>
-                        <AppIcon name="checkmark-circle" size={48} color="#4CAF50" />
-                        <Text style={styles.completedTitle}>Lesson Completed!</Text>
-                        {selectedLesson.score && (
-                          <Text style={styles.completedScore}>Score: {selectedLesson.score}%</Text>
-                        )}
-                        <Text style={styles.completedMessage}>
-                          Great job! You've mastered this lesson. Keep practicing to reinforce your knowledge.
-                        </Text>
-                      </View>
-                    ) : (
-                      <View style={styles.startSection}>
-                        <Text style={styles.startTitle}>Ready to learn?</Text>
-                        <Text style={styles.startDescription}>
-                          This lesson will teach you {selectedLesson.description.toLowerCase()}. 
-                          Take your time and practice the concepts thoroughly.
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </ScrollView>
-
-                <View style={styles.modalFooter}>
-                  {!selectedLesson.completed && (
-                    <TouchableOpacity
-                      style={styles.startButton}
-                      onPress={() => handleStartLesson(selectedLesson)}
-                    >
-                      <AppIcon name="play" size={20} color="#fff" />
-                      <Text style={styles.startButtonText}>Start Lesson</Text>
-                    </TouchableOpacity>
-                  )}
-                  <TouchableOpacity
-                    style={styles.closeButton}
-                    onPress={() => setShowLessonModal(false)}
-                  >
-                    <Text style={styles.closeButtonText}>Close</Text>
-                  </TouchableOpacity>
-                </View>
-              </>
-            )}
-          </View>
-        </View>
+        {selectedLesson && (
+          <LessonViewer
+            lesson={curriculum.find(l => l.id === selectedLesson.id)!}
+            onComplete={handleLessonComplete}
+            onClose={() => setShowLessonModal(false)}
+          />
+        )}
       </Modal>
     </View>
   );
@@ -482,17 +383,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f8f9fa',
   },
-  centered: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666',
-  },
   header: {
-    padding: 24,
+    padding: 20,
     paddingTop: 40,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -509,101 +401,63 @@ const styles = StyleSheet.create({
     color: '#fff',
     textAlign: 'center',
     opacity: 0.9,
-    marginBottom: 20,
-  },
-  progressCard: {
-    backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 12,
-    marginTop: 16,
-  },
-  progressHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  progressTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-  },
-  progressPercentage: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#6200ee',
+    marginBottom: 16,
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#e0e0e0',
+    backgroundColor: 'rgba(255, 255, 255, 0.3)',
     borderRadius: 4,
-    marginBottom: 8,
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#6200ee',
+    backgroundColor: '#fff',
     borderRadius: 4,
   },
-  progressText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-  },
-  section: {
-    padding: 20,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-    color: '#333',
-  },
-  continueCard: {
+  categoryFilter: {
     backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 12,
+    paddingVertical: 12,
+  },
+  categoryFilterContent: {
+    paddingHorizontal: 20,
+  },
+  categoryButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3.84,
-    elevation: 5,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    marginRight: 12,
+    borderRadius: 20,
+    backgroundColor: '#f0f0f0',
   },
-  continueContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  activeCategoryButton: {
+    backgroundColor: '#6200ee',
   },
-  continueText: {
-    marginLeft: 12,
-    flex: 1,
-  },
-  continueTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  continueSubtitle: {
+  categoryButtonText: {
     fontSize: 14,
-    color: '#666',
+    color: '#6200ee',
+    marginLeft: 6,
+    fontWeight: '500',
+  },
+  activeCategoryButtonText: {
+    color: '#fff',
+  },
+  content: {
+    flex: 1,
+    padding: 20,
   },
   lessonCard: {
     backgroundColor: '#fff',
-    padding: 16,
+    padding: 20,
     borderRadius: 12,
-    marginBottom: 12,
+    marginBottom: 16,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3.84,
     elevation: 5,
   },
-  completedLesson: {
-    borderLeftWidth: 4,
-    borderLeftColor: '#4CAF50',
+  lockedLessonCard: {
+    opacity: 0.6,
   },
   lessonHeader: {
     flexDirection: 'row',
@@ -611,26 +465,20 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   lessonInfo: {
+    flex: 1,
+    marginRight: 16,
+  },
+  lessonTitleRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    flex: 1,
-  },
-  categoryIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
-  },
-  lessonDetails: {
-    flex: 1,
+    marginBottom: 8,
   },
   lessonTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 18,
+    fontWeight: 'bold',
     color: '#333',
-    marginBottom: 4,
+    marginLeft: 12,
+    flex: 1,
   },
   lessonDescription: {
     fontSize: 14,
@@ -640,172 +488,75 @@ const styles = StyleSheet.create({
   lessonMeta: {
     alignItems: 'flex-end',
   },
-  completedBadge: {
-    backgroundColor: '#4CAF50',
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
   difficultyBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 12,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   difficultyText: {
+    color: '#fff',
     fontSize: 10,
     fontWeight: 'bold',
-    color: '#fff',
-    textTransform: 'uppercase',
+  },
+  durationBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
   },
   durationText: {
     fontSize: 12,
     color: '#666',
+    marginLeft: 4,
   },
-  scoreSection: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  completionInfo: {
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: '#f0f0f0',
   },
-  scoreText: {
-    fontSize: 14,
+  completionText: {
+    fontSize: 12,
     color: '#4CAF50',
     fontWeight: '500',
   },
-  timeText: {
-    fontSize: 14,
-    color: '#666',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  lockedOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderRadius: 12,
   },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    width: width - 40,
-    maxHeight: '80%',
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    flex: 1,
-  },
-  modalScroll: {
-    maxHeight: 400,
-  },
-  lessonContent: {
-    padding: 20,
-  },
-  lessonText: {
-    fontSize: 16,
-    lineHeight: 24,
-    color: '#555',
-    marginBottom: 20,
-  },
-  lessonStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginBottom: 20,
-    paddingVertical: 16,
-    backgroundColor: '#f8f9fa',
-    borderRadius: 8,
-  },
-  statItem: {
-    alignItems: 'center',
-  },
-  statText: {
+  lockedText: {
     fontSize: 12,
     color: '#666',
-    marginTop: 4,
-    textTransform: 'capitalize',
-  },
-  completedSection: {
-    alignItems: 'center',
-    paddingVertical: 20,
-    backgroundColor: '#E8F5E8',
-    borderRadius: 8,
-  },
-  completedTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#4CAF50',
-    marginTop: 12,
-    marginBottom: 8,
-  },
-  completedScore: {
-    fontSize: 16,
-    color: '#4CAF50',
-    marginBottom: 12,
-  },
-  completedMessage: {
-    fontSize: 14,
-    color: '#666',
     textAlign: 'center',
-    lineHeight: 20,
+    marginTop: 8,
   },
-  startSection: {
-    paddingVertical: 20,
-    backgroundColor: '#F3E5F5',
-    borderRadius: 8,
-  },
-  startTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#6200ee',
-    marginBottom: 8,
-    textAlign: 'center',
-  },
-  startDescription: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 20,
-  },
-  modalFooter: {
-    padding: 20,
-    borderTopWidth: 1,
-    borderTopColor: '#f0f0f0',
-  },
-  startButton: {
-    backgroundColor: '#6200ee',
-    flexDirection: 'row',
-    alignItems: 'center',
+  emptyState: {
+    flex: 1,
     justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  startButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
-  },
-  closeButton: {
-    paddingVertical: 12,
     alignItems: 'center',
+    paddingVertical: 60,
   },
-  closeButtonText: {
+  emptyStateTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  emptyStateText: {
+    fontSize: 14,
     color: '#666',
-    fontSize: 16,
+    textAlign: 'center',
   },
 });
 

@@ -1,3 +1,6 @@
+// @ts-ignore
+// eslint-disable-next-line no-undef
+/* global console */
 import { useState, useEffect, useCallback } from 'react';
 import storage, { 
   UserProgress, 

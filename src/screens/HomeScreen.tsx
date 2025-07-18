@@ -178,10 +178,10 @@ const HomeScreen: React.FC = () => {
             <TouchableOpacity 
               onPress={() => {
                 navigation.navigate('Settings' as never);
-                Alert.alert('Achievements', 'View all achievements in Settings');
+                Alert.alert(i18n.t('settings.achievements'), i18n.t('settings.viewAchievementsSubtitle'));
               }}
             >
-              <Text style={styles.viewAllText}>View All</Text>
+                              <Text style={styles.viewAllText}>{i18n.t('home.viewAllAchievements')}</Text>
             </TouchableOpacity>
           </View>
           {unlockedAchievements.length > 0 ? (
@@ -193,10 +193,10 @@ const HomeScreen: React.FC = () => {
           ) : (
             <View style={styles.emptyAchievements}>
               <AppIcon name="star" size={48} color="#ccc" />
-              <Text style={styles.emptyAchievementsTitle}>No Achievements Yet</Text>
-              <Text style={styles.emptyAchievementsText}>
-                Complete lessons, practice sessions, and challenges to unlock achievements!
-              </Text>
+                              <Text style={styles.emptyAchievementsTitle}>{i18n.t('home.noAchievements')}</Text>
+                              <Text style={styles.emptyAchievementsText}>
+                  {i18n.t('home.noAchievementsSubtitle')}
+                </Text>
             </View>
           )}
         </View>

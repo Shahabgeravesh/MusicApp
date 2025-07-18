@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform } from 'react-native';
+import { Platform, I18nManager } from 'react-native';
 import i18n from './src/i18n';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -16,28 +16,36 @@ import SettingsScreen from './src/screens/SettingsScreen';
 const Tab = createBottomTabNavigator();
 
 export default function App() {
-  const [currentLanguage, setCurrentLanguage] = useState(i18n.locale);
+  const [currentLanguage, setCurrentLanguage] = useState(i18n.getLocale());
+  const [forceUpdate, setForceUpdate] = useState(0);
   
   // Listen for language changes
   useEffect(() => {
-    const checkLanguage = () => {
-      if (i18n.locale !== currentLanguage) {
-        setCurrentLanguage(i18n.locale);
+    const unsubscribe = i18n.onLanguageChange(() => {
+      const newLocale = i18n.getLocale();
+      setCurrentLanguage(newLocale);
+      
+      // Force re-render of the entire app
+      setForceUpdate(prev => prev + 1);
+      
+      // Handle RTL layout changes
+      if (newLocale === 'fa' && !I18nManager.isRTL) {
+        I18nManager.forceRTL(true);
+      } else if (newLocale === 'en' && I18nManager.isRTL) {
+        I18nManager.forceRTL(false);
       }
-    };
+    });
     
-    // Check language every second (simple polling approach)
-    const interval = setInterval(checkLanguage, 100);
-    return () => clearInterval(interval);
-  }, [currentLanguage]);
+    return unsubscribe;
+  }, []);
   
   const getTabTitle = (key: string) => {
     const titles = {
-      home: currentLanguage === 'fa' ? 'خانه' : 'Home',
-      lessons: currentLanguage === 'fa' ? 'درس‌ها' : 'Lessons',
-      practice: currentLanguage === 'fa' ? 'تمرین' : 'Practice',
-      quiz: currentLanguage === 'fa' ? 'آزمون' : 'Quiz',
-      settings: currentLanguage === 'fa' ? 'تنظیمات' : 'Settings',
+      home: i18n.t('navigation.home'),
+      lessons: i18n.t('navigation.lessons'),
+      practice: i18n.t('navigation.practice'),
+      quiz: i18n.t('navigation.quiz'),
+      settings: i18n.t('navigation.settings'),
     };
     return titles[key as keyof typeof titles] || key;
   };
@@ -46,7 +54,7 @@ export default function App() {
     <SafeAreaProvider>
       <NavigationContainer>
         <Tab.Navigator
-          key={currentLanguage} // Force re-render when language changes
+          key={`${currentLanguage}-${forceUpdate}`} // Force re-render when language changes
           screenOptions={({ route }) => ({
             tabBarIcon: ({ focused, color, size }) => {
               let iconName: keyof typeof Ionicons.glyphMap = 'home';

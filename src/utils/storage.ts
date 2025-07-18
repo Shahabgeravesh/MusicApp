@@ -1,3 +1,6 @@
+// @ts-ignore
+// eslint-disable-next-line no-undef
+/* global console */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Storage keys

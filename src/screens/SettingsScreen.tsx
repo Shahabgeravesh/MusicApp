@@ -1,3 +1,6 @@
+// @ts-ignore
+// eslint-disable-next-line no-undef
+/* global console, alert */
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, I18nManager, Switch, ScrollView, Alert, Modal, Dimensions } from 'react-native';
 import i18n from '../i18n';
@@ -28,17 +31,17 @@ const SettingsScreen: React.FC = () => {
     
     // Show confirmation and suggest restart for RTL changes
     if (language === 'fa') {
-      Alert.alert(
-        'Language Changed',
-        'Farsi language activated with RTL layout. The app will now display in Persian.',
-        [{ text: 'OK' }]
-      );
-    } else {
-      Alert.alert(
-        'Language Changed',
-        'English language activated.',
-        [{ text: 'OK' }]
-      );
+          Alert.alert(
+      i18n.t('settings.languageChanged'),
+      i18n.t('settings.farsiActivated'),
+      [{ text: i18n.t('ok_button') }]
+    );
+  } else {
+    Alert.alert(
+      i18n.t('settings.languageChanged'),
+      i18n.t('settings.englishActivated'),
+      [{ text: i18n.t('ok_button') }]
+    );
     }
     
     console.log(`Language switched to: ${language}`);
@@ -68,13 +71,13 @@ const SettingsScreen: React.FC = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Settings</Text>
-        <Text style={styles.subtitle}>Customize your learning experience</Text>
+        <Text style={styles.title}>{i18n.t('settings.title')}</Text>
+        <Text style={styles.subtitle}>{i18n.t('settings.subtitle')}</Text>
       </View>
 
       {/* Language Settings */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Language</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('settings.language')}</Text>
         <View style={styles.languageContainer}>
           <TouchableOpacity
             style={[
@@ -87,7 +90,7 @@ const SettingsScreen: React.FC = () => {
               styles.languageButtonText,
               currentLanguage === 'en' && styles.activeLanguageButtonText
             ]}>
-              English            </Text>
+              {i18n.t('english')}            </Text>
           </TouchableOpacity>
           
           <TouchableOpacity
@@ -101,31 +104,31 @@ const SettingsScreen: React.FC = () => {
               styles.languageButtonText,
               currentLanguage === 'fa' && styles.activeLanguageButtonText
             ]}>
-              فارسی            </Text>
+              {i18n.t('farsi')}            </Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* App Settings */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>App Settings</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('settings.notifications')}</Text>
         <SettingItem
-          title="Notifications"
-          subtitle="Get reminders to practice daily"
+          title={i18n.t('settings.notifications')}
+          subtitle={i18n.t('settings.notificationsSubtitle')}
           showSwitch={true}
           switchValue={notificationsEnabled}
           onSwitchChange={setNotificationsEnabled}
         />
         <SettingItem
-          title="Sound Effects"
-          subtitle="Play sounds for correct/incorrect answers"
+          title={i18n.t('settings.soundEffects')}
+          subtitle={i18n.t('settings.soundEffectsSubtitle')}
           showSwitch={true}
           switchValue={soundEnabled}
           onSwitchChange={setSoundEnabled}
         />
         <SettingItem
-          title="Auto-play Audio"
-          subtitle="Automatically play lesson audio"
+          title={i18n.t('settings.autoPlayAudio')}
+          subtitle={i18n.t('settings.autoPlayAudioSubtitle')}
           showSwitch={true}
           switchValue={autoPlayEnabled}
           onSwitchChange={setAutoPlayEnabled}
@@ -134,10 +137,10 @@ const SettingsScreen: React.FC = () => {
 
       {/* Achievements */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Achievements</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('settings.achievements')}</Text>
         <SettingItem
-          title="View Achievements"
-          subtitle={`${unlockedAchievements.length} of ${achievements.length} unlocked`}
+          title={i18n.t('settings.viewAchievements')}
+          subtitle={`${unlockedAchievements.length} ${i18n.t('settings.of')} ${achievements.length} ${i18n.t('settings.unlocked')}`}
           value=""
           onPress={() => setShowAchievements(true)}
         />
@@ -145,53 +148,53 @@ const SettingsScreen: React.FC = () => {
 
       {/* Progress & Data */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Progress & Data</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('settings.dataManagement')}</Text>
         <SettingItem
-          title="Reset Progress"
-          subtitle="Start over with all lessons"
+          title={i18n.t('settings.resetProgress')}
+          subtitle={i18n.t('settings.resetProgressSubtitle')}
           value=""
-          onPress={() => alert('Reset progress? This cannot be undone.')}
+          onPress={() => alert(i18n.t('settings.resetProgressConfirm'))}
         />
         <SettingItem
-          title="Export Progress"
-          subtitle="Save your learning data"
+          title={i18n.t('settings.exportProgress')}
+          subtitle={i18n.t('settings.exportProgressSubtitle')}
           value=""
-          onPress={() => alert('Export feature coming soon!')}
+          onPress={() => alert(i18n.t('settings.exportFeatureComing'))}
         />
         <SettingItem
-          title="Clear Cache"
-          subtitle="Free up storage space"
+          title={i18n.t('settings.clearCache')}
+          subtitle={i18n.t('settings.clearCacheSubtitle')}
           value=""
-          onPress={() => alert('Cache cleared!')}
+          onPress={() => alert(i18n.t('settings.cacheCleared'))}
         />
       </View>
 
       {/* About */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>About</Text>
+        <Text style={styles.sectionTitle}>{i18n.t('settings.about')}</Text>
         <SettingItem
-          title="Version"
-          subtitle="Current app version"
+          title={i18n.t('settings.version')}
+          subtitle={i18n.t('settings.versionSubtitle')}
           value="1.0.0"
           onPress={() => {}}
         />
         <SettingItem
-          title="Terms of Service"
-          subtitle="Read our terms and conditions"
+          title={i18n.t('settings.termsOfService')}
+          subtitle={i18n.t('settings.termsOfServiceSubtitle')}
           value=""
-          onPress={() => alert('Terms of Service coming soon!')}
+          onPress={() => alert(i18n.t('settings.termsComingSoon'))}
         />
         <SettingItem
-          title="Privacy Policy"
-          subtitle="How we handle your data"
+          title={i18n.t('settings.privacyPolicy')}
+          subtitle={i18n.t('settings.privacyPolicySubtitle')}
           value=""
-          onPress={() => alert('Privacy Policy coming soon!')}
+          onPress={() => alert(i18n.t('settings.privacyComingSoon'))}
         />
         <SettingItem
-          title="Contact Support"
-          subtitle="Get help with the app"
+          title={i18n.t('settings.contactSupport')}
+          subtitle={i18n.t('settings.contactSupportSubtitle')}
           value=""
-          onPress={() => alert('Contact support coming soon!')}
+          onPress={() => alert(i18n.t('settings.supportComingSoon'))}
         />
       </View>
 
@@ -205,7 +208,7 @@ const SettingsScreen: React.FC = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Achievements</Text>
+              <Text style={styles.modalTitle}>{i18n.t('settings.achievementsTitle')}</Text>
               <TouchableOpacity onPress={() => setShowAchievements(false)}>
                 <AppIcon name="close" size={24} color="#666" />
               </TouchableOpacity>
@@ -238,9 +241,9 @@ const SettingsScreen: React.FC = () => {
                       {achievement.description}
                     </Text>
                     {achievement.unlocked && achievement.unlockedAt && (
-                      <Text style={styles.achievementDate}>
-                        Unlocked: {new Date(achievement.unlockedAt).toLocaleDateString()}
-                      </Text>
+                                          <Text style={styles.achievementDate}>
+                      {i18n.t('settings.unlocked')}: {new Date(achievement.unlockedAt).toLocaleDateString()}
+                    </Text>
                     )}
                   </View>
                   <View style={styles.achievementProgress}>

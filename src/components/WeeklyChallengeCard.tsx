@@ -47,13 +47,19 @@ const WeeklyChallengeCard: React.FC<WeeklyChallengeCardProps> = ({
 
   const handleComplete = () => {
     if (challenge.completed) {
-      Alert.alert('Challenge Completed!', 'You\'ve already completed this challenge. Great job! 🏆');
+      Alert.alert(
+        i18n.t('challenges.completedTitle'), 
+        i18n.t('challenges.completedMessage')
+      );
     } else if (progress >= 100) {
       Alert.alert(
-        'Challenge Complete! 🎉',
-        `Congratulations! You've earned ${challenge.reward.points} points and the "${challenge.reward.title}" badge!`,
+        i18n.t('challenges.completeTitle'),
+        i18n.t('challenges.completeMessage', { 
+          points: challenge.reward.points, 
+          title: challenge.reward.title 
+        }),
         [
-          { text: 'Continue', onPress: () => onComplete?.() }
+          { text: i18n.t('continue'), onPress: () => onComplete?.() }
         ]
       );
     } else {
@@ -102,7 +108,10 @@ const WeeklyChallengeCard: React.FC<WeeklyChallengeCardProps> = ({
           <View style={styles.progressSection}>
             <View style={styles.progressHeader}>
               <Text style={styles.progressText}>
-                {challenge.current} of {challenge.target} completed
+                {i18n.t('challenges.progressText', { 
+                  current: challenge.current, 
+                  target: challenge.target 
+                })}
               </Text>
               <Text style={styles.progressPercentage}>{Math.round(progress)}%</Text>
             </View>
@@ -129,7 +138,10 @@ const WeeklyChallengeCard: React.FC<WeeklyChallengeCardProps> = ({
           <View style={styles.rewardSection}>
             <AppIcon name="star" size={16} color="#FFD700" />
             <Text style={styles.rewardText}>
-              {challenge.reward.points} points + "{challenge.reward.title}" badge
+              {i18n.t('challenges.rewardText', { 
+                points: challenge.reward.points, 
+                title: challenge.reward.title 
+              })}
             </Text>
           </View>
 
@@ -140,7 +152,7 @@ const WeeklyChallengeCard: React.FC<WeeklyChallengeCardProps> = ({
               onPress={() => setShowDetails(true)}
             >
               <AppIcon name="info" size={16} color="#6200ee" />
-              <Text style={styles.actionButtonText}>Strategy</Text>
+              <Text style={styles.actionButtonText}>{i18n.t('challenges.strategy')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -148,7 +160,7 @@ const WeeklyChallengeCard: React.FC<WeeklyChallengeCardProps> = ({
               onPress={() => setShowTips(true)}
             >
               <AppIcon name="help-circle" size={16} color="#FF9800" />
-              <Text style={styles.actionButtonText}>Tips</Text>
+              <Text style={styles.actionButtonText}>{i18n.t('challenges.tips')}</Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
@@ -165,7 +177,7 @@ const WeeklyChallengeCard: React.FC<WeeklyChallengeCardProps> = ({
                 color="#fff" 
               />
               <Text style={[styles.actionButtonText, { color: '#fff' }]}>
-                {progress >= 100 ? 'Completed' : 'Start'}
+                {progress >= 100 ? i18n.t('challenges.completed') : i18n.t('challenges.start')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -190,7 +202,7 @@ const WeeklyChallengeCard: React.FC<WeeklyChallengeCardProps> = ({
               </View>
 
               <View style={styles.strategySection}>
-                <Text style={styles.sectionTitle}>Your Strategy</Text>
+                <Text style={styles.sectionTitle}>{i18n.t('challenges.yourStrategy')}</Text>
                 <Text style={styles.strategyText}>{challenge.strategy}</Text>
               </View>
 
@@ -208,27 +220,28 @@ const WeeklyChallengeCard: React.FC<WeeklyChallengeCardProps> = ({
                   />
                 </View>
                 <Text style={styles.progressText}>
-                  {challenge.current} of {challenge.target} completed ({Math.round(progress)}%)
+                  {i18n.t('challenges.progressText', { 
+                    current: challenge.current, 
+                    target: challenge.target 
+                  })}
                 </Text>
               </View>
 
               <View style={styles.rewardSection}>
                 <Text style={styles.sectionTitle}>{i18n.t('home.challengeReward')}</Text>
-                <View style={styles.rewardCard}>
-                  <AppIcon name="star" size={24} color="#FFD700" />
-                  <View style={styles.rewardInfo}>
-                    <Text style={styles.rewardTitle}>{challenge.reward.title}</Text>
-                    <Text style={styles.rewardPoints}>{challenge.reward.points} points</Text>
-                  </View>
+                <View style={styles.rewardItem}>
+                  <AppIcon name="star" size={20} color="#FFD700" />
+                  <Text style={styles.rewardText}>
+                    {i18n.t('challenges.pointsReward', { points: challenge.reward.points })}
+                  </Text>
+                </View>
+                <View style={styles.rewardItem}>
+                  <AppIcon name="trophy" size={20} color="#FFD700" />
+                  <Text style={styles.rewardText}>
+                    {i18n.t('challenges.badgeReward', { title: challenge.reward.title })}
+                  </Text>
                 </View>
               </View>
-
-              <TouchableOpacity 
-                style={[styles.modalButton, { backgroundColor: typeColor }]}
-                onPress={() => setShowDetails(false)}
-              >
-                <Text style={styles.modalButtonText}>{i18n.t('home.gotIt')}</Text>
-              </TouchableOpacity>
             </ScrollView>
           </View>
         </View>
@@ -243,28 +256,30 @@ const WeeklyChallengeCard: React.FC<WeeklyChallengeCardProps> = ({
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{i18n.t('home.proTips')}</Text>
-              <TouchableOpacity onPress={() => setShowTips(false)}>
-                <AppIcon name="close" size={24} color="#666" />
-              </TouchableOpacity>
-            </View>
-
             <ScrollView showsVerticalScrollIndicator={false}>
-              {challenge.tips.map((tip, index) => (
-                <View key={index} style={styles.tipItem}>
-                  <View style={styles.tipNumber}>
-                    <Text style={styles.tipNumberText}>{index + 1}</Text>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{i18n.t('home.proTips')}</Text>
+                <TouchableOpacity onPress={() => setShowTips(false)}>
+                  <AppIcon name="close" size={24} color="#666" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.tipsSection}>
+                {challenge.tips.map((tip, index) => (
+                  <View key={index} style={styles.tipItem}>
+                    <View style={styles.tipNumber}>
+                      <Text style={styles.tipNumberText}>{index + 1}</Text>
+                    </View>
+                    <Text style={styles.tipText}>{tip}</Text>
                   </View>
-                  <Text style={styles.tipText}>{tip}</Text>
-                </View>
-              ))}
+                ))}
+              </View>
 
               <TouchableOpacity 
-                style={[styles.modalButton, { backgroundColor: typeColor }]}
+                style={styles.closeButton}
                 onPress={() => setShowTips(false)}
               >
-                <Text style={styles.modalButtonText}>{i18n.t('home.thanksForTips')}</Text>
+                <Text style={styles.closeButtonText}>{i18n.t('home.gotIt')}</Text>
               </TouchableOpacity>
             </ScrollView>
           </View>
@@ -364,12 +379,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFF3E0',
     borderRadius: 8,
   },
-  rewardText: {
-    fontSize: 14,
-    color: '#E65100',
-    fontWeight: '500',
-    marginLeft: 8,
-  },
   actionButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -438,25 +447,16 @@ const styles = StyleSheet.create({
     color: '#666',
     lineHeight: 20,
   },
-  rewardCard: {
+  rewardItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#FFF3E0',
-    borderRadius: 12,
+    marginBottom: 8,
   },
-  rewardInfo: {
-    marginLeft: 12,
-  },
-  rewardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#E65100',
-  },
-  rewardPoints: {
+  rewardText: {
     fontSize: 14,
     color: '#E65100',
-    marginTop: 4,
+    fontWeight: '500',
+    marginLeft: 8,
   },
   tipItem: {
     flexDirection: 'row',
@@ -484,17 +484,21 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     flex: 1,
   },
-  modalButton: {
+  closeButton: {
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
     alignItems: 'center',
     marginTop: 20,
+    backgroundColor: '#6200ee',
   },
-  modalButtonText: {
+  closeButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  tipsSection: {
+    marginBottom: 20,
   },
 });
 
