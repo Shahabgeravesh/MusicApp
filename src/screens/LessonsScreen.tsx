@@ -1,6 +1,4 @@
 // @ts-ignore
-// eslint-disable-next-line no-undef
-/* global console */
 import React, { useState, useEffect } from 'react';
 import {
   View,
@@ -18,10 +16,8 @@ import AppIcon from '../components/AppIcon';
 import i18n from '../i18n';
 import { useAppData } from '../hooks/useAppData';
 import { useNavigation } from '@react-navigation/native';
-import { curriculum, getLessonById, getPrerequisitesMet } from '../data/curriculum';
+import { curriculum } from '../data/curriculum';
 import LessonViewer from '../components/LessonViewer';
-
-const { width } = Dimensions.get('window');
 
 interface Lesson {
   id: number;
@@ -39,18 +35,15 @@ interface Lesson {
 }
 
 const LessonsScreen: React.FC = () => {
-  const navigation = useNavigation();
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [showLessonModal, setShowLessonModal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [filterCategory, setFilterCategory] = useState<string | null>(null);
   
   const {
-    userProgress,
     completedLessons,
     completeLesson,
     addPracticeSession,
-    addQuizResult,
     updateWeeklyChallengeProgress,
   } = useAppData();
 
@@ -187,13 +180,7 @@ const LessonsScreen: React.FC = () => {
     return totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0;
   };
 
-  const getNextLesson = () => {
-    return lessons.find(lesson => 
-      !lesson.completed && lesson.prerequisites.every(prereq => 
-        completedLessons.some(cl => cl.lessonId === prereq)
-      )
-    );
-  };
+
 
   const filteredLessons = filterCategory 
     ? lessons.filter(lesson => lesson.category === filterCategory)

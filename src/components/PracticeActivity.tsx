@@ -1,5 +1,4 @@
 // @ts-ignore
-// eslint-disable-next-line no-undef
 /* global setTimeout */
 import React, { useState, useEffect } from 'react';
 import {
@@ -7,17 +6,12 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
-  Dimensions,
-  Animated,
   ScrollView,
-  ActivityIndicator,
+  Animated,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AppIcon from './AppIcon';
 import i18n from '../i18n';
-
-const { width, height } = Dimensions.get('window');
 
 interface PracticeExercise {
   question: string;

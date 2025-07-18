@@ -4,7 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Platform, I18nManager } from 'react-native';
+import { I18nManager } from 'react-native';
 import i18n from './src/i18n';
 
 import HomeScreen from './src/screens/HomeScreen';

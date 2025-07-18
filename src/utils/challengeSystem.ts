@@ -1,5 +1,3 @@
-import { Platform } from 'react-native';
-
 export interface Challenge {
   id: string;
   title: string;

@@ -1,14 +1,11 @@
 // @ts-ignore
-// eslint-disable-next-line no-undef
-/* global console */
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Modal, Alert } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AppIcon from '../components/AppIcon';
-import i18n from '../i18n';
-import { curriculum, getLessonsByCategory } from '../data/curriculum';
 import Quiz from '../components/Quiz';
 import { useAppData } from '../hooks/useAppData';
+import i18n from '../i18n';
 
 // Import QuizQuestion type from Quiz component
 interface QuizQuestion {

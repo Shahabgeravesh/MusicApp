@@ -1,11 +1,10 @@
 // @ts-ignore
-// eslint-disable-next-line no-undef
-/* global console, alert */
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, I18nManager, Switch, ScrollView, Alert, Modal, Dimensions } from 'react-native';
-import i18n from '../i18n';
-import { useAppData } from '../hooks/useAppData';
+import { LinearGradient } from 'expo-linear-gradient';
 import AppIcon from '../components/AppIcon';
+import { useAppData } from '../hooks/useAppData';
+import i18n from '../i18n';
 
 const SettingsScreen: React.FC = () => {
   const [currentLanguage, setCurrentLanguage] = useState(i18n.locale);

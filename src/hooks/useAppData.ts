@@ -1,5 +1,4 @@
 // @ts-ignore
-// eslint-disable-next-line no-undef
 /* global console */
 import { useState, useEffect, useCallback } from 'react';
 import storage, { 
@@ -9,8 +8,7 @@ import storage, {
   Achievement, 
   LearningStreak, 
   WeeklyChallenge, 
-  QuizResult, 
-  AppSettings 
+  AppSettings,
 } from '../utils/storage';
 import { ChallengeSystem } from '../utils/challengeSystem';
 

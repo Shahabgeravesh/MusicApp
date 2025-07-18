@@ -1,23 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
-  Animated,
   Modal,
   Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import AppIcon from './AppIcon';
-import i18n from '../i18n';
-import { LessonContent } from '../data/curriculum';
 import PracticeActivity from './PracticeActivity';
 import Quiz from './Quiz';
-
-const { width, height } = Dimensions.get('window');
+import i18n from '../i18n';
+import { LessonContent } from '../data/curriculum';
 
 interface LessonViewerProps {
   lesson: LessonContent;
@@ -33,23 +29,6 @@ const LessonViewer: React.FC<LessonViewerProps> = ({
   const [currentSection, setCurrentSection] = useState(0);
   const [showPractice, setShowPractice] = useState(false);
   const [showQuiz, setShowQuiz] = useState(false);
-  const [fadeAnim] = useState(new Animated.Value(0));
-  const [slideAnim] = useState(new Animated.Value(0));
-
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }),
-      Animated.timing(slideAnim, {
-        toValue: 1,
-        duration: 800,
-        useNativeDriver: true,
-      }),
-    ]).start();
-  }, []);
 
   const handleNextSection = () => {
     if (currentSection < lesson.content.sections.length - 1) {
@@ -67,11 +46,11 @@ const LessonViewer: React.FC<LessonViewerProps> = ({
     }
   };
 
-  const handlePracticeComplete = (score: number, total: number) => {
+  const handlePracticeComplete = (score: number, _total: number) => {
     setShowPractice(false);
     Alert.alert(
       i18n.t('lessons.practiceComplete'),
-      i18n.t('lessons.practiceScore', { score, total }),
+      i18n.t('lessons.practiceScore', { score, total: _total }),
       [
         { text: i18n.t('lessons.takeQuiz'), onPress: () => setShowQuiz(true) },
         { text: i18n.t('lessons.completeLesson'), onPress: () => onComplete(lesson.id, score) },
@@ -79,7 +58,7 @@ const LessonViewer: React.FC<LessonViewerProps> = ({
     );
   };
 
-  const handleQuizComplete = (score: number, total: number) => {
+  const handleQuizComplete = (score: number, _total: number) => {
     setShowQuiz(false);
     onComplete(lesson.id, score);
   };
@@ -162,75 +141,70 @@ const LessonViewer: React.FC<LessonViewerProps> = ({
 
       {/* Content */}
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <Animated.View style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim.interpolate({
-          inputRange: [0, 1],
-          outputRange: [50, 0],
-        }) }] }}>
-          {/* Learning Objectives */}
-          <View style={styles.objectivesContainer}>
-            <Text style={styles.objectivesTitle}>{i18n.t('lessons.learningObjectives')}</Text>
-            {lesson.learningObjectives.map((objective, index) => (
-              <View key={index} style={styles.objectiveItem}>
-                <AppIcon name="checkmark-circle" size={16} color="#4CAF50" />
-                <Text style={styles.objectiveText}>
-                  {i18n.locale === 'fa' ? lesson.learningObjectivesFa[index] : objective}
-                </Text>
-              </View>
-            ))}
-          </View>
-
-          {/* Current Section */}
-          <View style={styles.sectionContainer}>
-            <Text style={styles.sectionTitle}>
-              {i18n.locale === 'fa' ? currentSectionData.titleFa : currentSectionData.title}
-            </Text>
-            
-            <Text style={styles.sectionContent}>
-              {i18n.locale === 'fa' ? currentSectionData.contentFa : currentSectionData.content}
-            </Text>
-
-            {currentSectionData.imageUrl && (
-              <View style={styles.imageContainer}>
-                <Text style={styles.imagePlaceholder}>
-                  {i18n.t('lessons.imagePlaceholder')}
-                </Text>
-              </View>
-            )}
-
-            {currentSectionData.audioUrl && (
-              <TouchableOpacity style={styles.audioButton}>
-                <AppIcon name="play-circle" size={24} color="#6200ee" />
-                <Text style={styles.audioText}>{i18n.t('lessons.listenToSection')}</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Navigation */}
-          <View style={styles.navigationContainer}>
-            {currentSection > 0 && (
-              <TouchableOpacity 
-                style={[styles.navButton, styles.previousButton]}
-                onPress={() => setCurrentSection(currentSection - 1)}
-              >
-                <AppIcon name="chevron-back" size={20} color="#6200ee" />
-                <Text style={styles.previousButtonText}>{i18n.t('lessons.previous')}</Text>
-              </TouchableOpacity>
-            )}
-
-            <TouchableOpacity 
-              style={[styles.navButton, styles.nextButton]}
-              onPress={handleNextSection}
-            >
-              <Text style={styles.nextButtonText}>
-                {currentSection < lesson.content.sections.length - 1 
-                  ? i18n.t('lessons.nextSection')
-                  : i18n.t('lessons.completeContent')
-                }
+        {/* Learning Objectives */}
+        <View style={styles.objectivesContainer}>
+          <Text style={styles.objectivesTitle}>{i18n.t('lessons.learningObjectives')}</Text>
+          {lesson.learningObjectives.map((objective, index) => (
+            <View key={index} style={styles.objectiveItem}>
+              <AppIcon name="checkmark-circle" size={16} color="#4CAF50" />
+              <Text style={styles.objectiveText}>
+                {i18n.locale === 'fa' ? lesson.learningObjectivesFa[index] : objective}
               </Text>
-              <AppIcon name="chevron-forward" size={20} color="#fff" />
+            </View>
+          ))}
+        </View>
+
+        {/* Current Section */}
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>
+            {i18n.locale === 'fa' ? currentSectionData.titleFa : currentSectionData.title}
+          </Text>
+          
+          <Text style={styles.sectionContent}>
+            {i18n.locale === 'fa' ? currentSectionData.contentFa : currentSectionData.content}
+          </Text>
+
+          {currentSectionData.imageUrl && (
+            <View style={styles.imageContainer}>
+              <Text style={styles.imagePlaceholder}>
+                {i18n.t('lessons.imagePlaceholder')}
+              </Text>
+            </View>
+          )}
+
+          {currentSectionData.audioUrl && (
+            <TouchableOpacity style={styles.audioButton}>
+              <AppIcon name="play-circle" size={24} color="#6200ee" />
+              <Text style={styles.audioText}>{i18n.t('lessons.listenToSection')}</Text>
             </TouchableOpacity>
-          </View>
-        </Animated.View>
+          )}
+        </View>
+
+        {/* Navigation */}
+        <View style={styles.navigationContainer}>
+          {currentSection > 0 && (
+            <TouchableOpacity 
+              style={[styles.navButton, styles.previousButton]}
+              onPress={() => setCurrentSection(currentSection - 1)}
+            >
+              <AppIcon name="chevron-back" size={20} color="#6200ee" />
+              <Text style={styles.previousButtonText}>{i18n.t('lessons.previous')}</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity 
+            style={[styles.navButton, styles.nextButton]}
+            onPress={handleNextSection}
+          >
+            <Text style={styles.nextButtonText}>
+              {currentSection < lesson.content.sections.length - 1 
+                ? i18n.t('lessons.nextSection')
+                : i18n.t('lessons.completeContent')
+              }
+            </Text>
+            <AppIcon name="chevron-forward" size={20} color="#fff" />
+          </TouchableOpacity>
+        </View>
       </ScrollView>
 
       {/* Practice Modal */}

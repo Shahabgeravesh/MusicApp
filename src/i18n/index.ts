@@ -1,5 +1,4 @@
 // @ts-ignore
-// eslint-disable-next-line no-undef
 /* global console */
 import en from './en';
 import fa from './fa';
